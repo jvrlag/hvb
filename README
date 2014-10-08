@@ -1,0 +1,43 @@
+% 141007
+
+HVB: the tiniest library to help scientific programming
+
+Developers:
+
+Javier Rodríguez-Laguna, Instituto de Física Teórica, CSIC (Spain)
+Giovanni Ramírez, Instituto de Física Teórica, CSIC (Spain)
+Silvia N. Santalla, Universidad Carlos III de Madrid (Spain)
+
+
+1. PURPOSE
+
+HVB is a library / programming platform in C++ designed to help you
+with everyday tasks of scientific computing: linear algebra, simple
+graphics, simple text processing, graph manipulation, numerical
+optimization, creating PostScript and other graphics files, etc.
+
+
+2. INSTALLATION
+
+For full working you will need the following libraries, including the
+development files:
+
+* BLAS & LAPACK
+* X11
+* Imlib2
+
+For example, in ubuntu, apply the following command:
+
+>> sudo apt-get install g++ libblas3 libblas-dev liblapack3 liblapack-dev libx11-dev libimlib2 libimlib2-dev
+
+In other UNIX systems the packages may have different names.
+
+Now enter the examples directory and try:
+
+>> make xtest
+>> ./xtest
+
+
+
+
+

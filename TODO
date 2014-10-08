@@ -1,0 +1,99 @@
+
+
+****** HVB TODO LIST *******
+
+1. GLOBAL: 
+
+1.1. Standarize interface: all function names should be capitalized
+and with underscores, verbs preferred to nouns. 
+
+1.2. Use methods when the object is transformed, and external
+functions when they return a different object.
+
+1.3. Clarify DEBUG options. 
+
+1.4. Documentation and set of example programs!!!
+
+1.6. Clean warnings.
+	
+1.7. Testing suite.
+
+1.8. Is it worth to change to STL templates?
+
+1.9. Check all Resize functions, they should be careful with the
+0-case.
+
+1.10. Check Insert functions.
+
+1.11. Improve the library interaction: e.g., if you are not using
+images, you do not need Imlib2.
+
+1.12. Create static library.
+
+
+2. MATRIX:
+
+2.1. Submatrices should be more flexible.
+
+2.4. Return a random matrix and vector.
+
+2.5. Divide Matrix by number.
+
+2.6. Multiply Matrix by number, both orders: k*A and A*k.
+
+2.7. Vertical-Write for many Vectors. 
+
+2.8. Awk-style reading of a file.
+
+2.9. Vector V+k, adding a number to a Vector.
+
+2.10. Get the maximal / minimal value of a full Matrix.
+
+
+3. COMMON:
+
+3.1. Binary_Ones: given an integer, return the List of the position of
+the ones. 
+
+3.2. "clamp" function: version of fmod that always return a positive
+number. Very useful for periodic boundary conditions.
+
+3.3. "isnumber" function, which acting on a string returns whether it
+can be interpreted numerically.
+
+3.4. Next_Permutation function, which allows us to run over all
+permutations of a set.
+
+
+4. GRAPH
+
+4.1. Function to obtain the list of neighbors of a node.
+
+4.2. Node and Link properties.
+
+4.3. Intelligent Graph addition: identifying an ensemble of sites in
+both.
+
+4.4. Planarity algorithm.
+
+4.5. Dijkstra's algorithm with real distances.
+
+
+5. EASYX:
+
+5.1. Clarify the double buffer issues.
+
+
+6. OPTIMIZE:
+
+6.1. Complementary data of target function should always go in Vector form.
+
+
+10. OTHER: 
+
+10.1. Add 3D-plotting routines?
+
+10.2. Histogram building functions.
+
+10.3. Numerical calculus: integration, ODE, FFT...
+
