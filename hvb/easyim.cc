@@ -74,4 +74,56 @@ void EI_Save(const char *name)
      imlib_save_image(name);
 }
 
+// Current image to matrices
+void EI_To_Matrices(Matrix &R, Matrix &G, Matrix &B, Matrix &A)
+{
+     long width=EI_Get_Width();
+     long height=EI_Get_Height();
+     unsigned char* data=(unsigned  char*)imlib_image_get_data();
+     long size=width*height;
+     A.Create(width,height);
+     R.Create(width,height); 
+     G.Create(width,height); 
+     B.Create(width,height);
+     for (long i=0;i<size;i++)
+     {
+	  long y=i/width+1;
+	  long x=i%width+1;
+	  B(x,y)=(double)data[4*i]/256.0;
+	  G(x,y)=(double)data[4*i+1]/256.0;
+	  R(x,y)=(double)data[4*i+2]/256.0;
+	  A(x,y)=(double)data[4*i+3]/256.0;
+	  if (B(x,y)<0.0) printf("Caution! %d -> %g\n",data[4*i],B(x,y));
+     }
+}
+
+// tranform x \in [0,1] into char in [0,255]
+char Double_To_Char(double x)
+{
+     long i=(long)round(x*256.0);
+     if (i<0) i=0;
+     if (i>255) i=255;
+     return (char)i;
+}
+
+// Matrices to current image
+void EI_From_Matrices(const Matrix &R, const Matrix &G, const Matrix &B,
+		      const Matrix &A)
+{
+     long width=R.N1;
+     long height=R.N2;
+     long size=width*height;
+     char* data=(char*)malloc(size*4);
+     for (long i=0;i<size;i++)
+     {
+	  long y=i/width+1;
+	  long x=i%width+1;
+	  data[4*i]=Double_To_Char(B(x,y));
+	  data[4*i+1]=Double_To_Char(G(x,y));
+	  data[4*i+2]=Double_To_Char(R(x,y));
+	  data[4*i+3]=Double_To_Char(A(x,y));
+     }
+     Imlib_Image im=imlib_create_image_using_data(width,height,(DATA32*)data);
+     imlib_context_set_image(im);     
+}
 

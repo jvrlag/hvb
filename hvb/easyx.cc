@@ -187,6 +187,7 @@ void EXFlush()
 {
      if (EXCW->use_buffer)
      {
+	  XFlush(EXInfo.display);
 	  XWindowAttributes wa;
 	  XGetWindowAttributes(EXInfo.display, EXCW->window, &wa);
 	  XCopyArea(EXInfo.display, EXCW->buffer, 

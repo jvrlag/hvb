@@ -590,6 +590,13 @@ Vector To_Real(const CVector &V)
      return R;
 }
 
+CVector To_Cmplx(const Vector &V)
+{
+     CVector R(V.N);
+     for (long i=1;i<=V.N;i++)
+	  R(i)=(cmplx)V(i);
+     return R;
+}
 
 // CVector CVector::operator+(const CVector& V) const
 // {

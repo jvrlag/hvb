@@ -123,6 +123,7 @@ CVector Real(const CVector &V);
 CVector Imag(const CVector &V);
 CVector Conj(const CVector &V);
 Vector To_Real(const CVector &V);
+CVector To_Cmplx(const Vector &V);
 Vector Norm(const CVector &V);
 
 CVector operator+(const CVector &V, const CVector &W);
