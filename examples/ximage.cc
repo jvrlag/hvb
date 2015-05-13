@@ -24,7 +24,7 @@ int main()
 	  for (long k=1;k<=kmax;k++)
 	  {
 	       double factor=Sqr(sin(k/(double)kmax));
-	       EX_Color(factor,1-factor,factor/10.0);
+//	       EX_Color(factor,1-factor,factor/10.0);
 	       EX_Line(0,k,xsize,xsize-k);
 	  }
 	  EX_Flush(); // do not forget this!
