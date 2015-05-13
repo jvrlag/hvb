@@ -1,11 +1,11 @@
-# Hvb makefile
+# Hvb generic makefile
 
-hvb=../hvb/
+hvb=$(HOME)/lib/Hvb_150510/
 
-FLAGS=-pedantic -Wall -g -I$(hvb) -O3 
+FLAGS=-pedantic -Wall -g -I$(hvb) -O3 -DDEBUG
 LIBS=-llapack -lblas -lm -L/usr/X11R6/lib -lX11 -lImlib2 
 
-HVBS= $(hvb)Matrix.o $(hvb)Common.o $(hvb)EX.o $(hvb)Postscript.o $(hvb)Graph.o  $(hvb)MatrixC.o $(hvb)Image.o $(hvb)Optimize.o $(hvb)Manybody.o $(hvb)Text.o
+HVBS= $(hvb)Matrix.o $(hvb)Text.o $(hvb)Common.o $(hvb)MatrixC.o $(hvb)EX.o $(hvb)Image.o $(hvb)Postscript.o $(hvb)Optimize.o $(hvb)Graph.o $(hvb)Manybody.o
 
 OBJECTS = 
 

@@ -2,12 +2,11 @@
 // 100914, second version, uses Imlib2
 // 141024, exporting/importing RGB matrices
 // Works with a "current image"
-
 #ifndef EASYIM_HEADER
 #define EASYIM_HEADER
 
-#include"easyx.h"
-#include"matrix.h"
+#include"EX.h"
+#include"Matrix.h"
 #include"Imlib2.h"
 
 typedef Imlib_Image EI_Image;
@@ -27,8 +26,5 @@ void EI_To_Matrices(Matrix &R, Matrix &G, Matrix &B, Matrix &A);
 // Put matrices (R,G,B) and alpha-channel A as current image
 void EI_From_Matrices(const Matrix &R, const Matrix &G, const Matrix &B,
 		      const Matrix &A);
-
-
-
 
 #endif

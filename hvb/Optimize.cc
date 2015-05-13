@@ -1,66 +1,71 @@
 // Optimization routines
-// 100317
-#include"optimize.h"
+// 100317-150126
+#include"Optimize.h"
 
-// This is a "metafunction"
-// FuncGrad returns the value of a function and its gradient
-// The first arguments are the outputs. Caution: G must be allocated!
-double FuncGrad(Vector &G, const Vector &X, 
-		Opt_VectorFType Function, void *params)
+double Func_RR::operator()(double x) const
 {
-     double F=Function(X,params);
-     double dx=1e-6; // CAUTION: THIS SHOULD BE AN OPEN PARAMETER!!!
+     return Func(x,p);
+}
+
+double Func_VR::operator()(const Vector &X) const
+{
+     return Func(X,p);
+}
+
+double Func_Grad(Vector &G, const Vector &X, Func_VR &F)
+{
+     double f=F(X);
+     double dx=1e-6; // CAUTION!! This should be an open parameter
      Vector X2=X;
      for (long i=1;i<=X.N;i++)
      {
 	  double x=X2(i);
           X2(i)=x+dx;
-          double F2=Function(X2,params);
-	  G(i)=(F2-F)/dx;
+          double f2=F(X2);
+	  G(i)=(f2-f)/dx;
           X2(i)=x;
      }
-     return F;
+     return f;
 }
 
-typedef struct 
-{
-     Opt_VectorFType Function;
-     Vector X0;
-     Vector G;
-     void *params;
-}Func1Dparams_type;
-// Needed to convert a vector function to 1d function for line search
-
+////////////////////////////////////////////////////////////////////////
 // Another "metafunction"
 // 1D-mensionalization of a vector function along a line
-double Func1D(double x, void *Q)
+// Needed to convert a vector function to 1d function for line search
+typedef struct 
 {
-     Func1Dparams_type Qex=*((Func1Dparams_type*)Q);
-     return Qex.Function(Qex.X0+x*Qex.G,Qex.params);
-}
+     Func_VR Function;
+     Vector X0;
+     Vector G;
+}Func_1D_Params_Type;
 
-double Line_Optimize(Vector &X, const Vector &G, 
-		     Opt_VectorFType Function, void *params, double tol)
+double Func_1D_Line_Optimize(double x, void *Q)
+{
+     Func_1D_Params_Type Qex=*((Func_1D_Params_Type*)Q);
+     return Qex.Function(Qex.X0+x*Qex.G);
+}
+//////////////////////////////////////////////////////////////////////////
+
+double Line_Optimize(Vector &X, const Vector &G, Func_VR &F, double tol)
 {
      // First, prepare parameters for Func1D
-     Func1Dparams_type Qex;
-     Qex.Function=Function;
+     Func_1D_Params_Type Qex;
+     Qex.Function=F;
      Qex.X0=X;
      Qex.G=G;
-     Qex.params=params;
+     Func_RR F1D(Func_1D_Line_Optimize,&Qex);
 
      double a=0.0,c=min(0.01,1.0/G.Norm()),b=c/2.0;
-     Bracket_Minimum(a,b,c,Func1D,&Qex);
+     Bracket_Minimum(a,b,c,F1D);
      double x;
-     double f=Brent_Optimize(x,a,b,c,Func1D,&Qex,tol);
+     double f=Brent_Optimize(x,a,b,c,F1D,tol);
 
      X=X+x*G;
      return f;
 }
 
 #define shift(a,b,c,d) (a)=(b);(b)=(c);(c)=(d);
-void Bracket_Minimum(double &a, double &b, double &c, Opt_ScalarFType F,
-		     void *p)
+void Bracket_Minimum(double &a, double &b, double &c, Func_RR &F)
 {
      static double golden=(1.0+sqrt(5.0))/2.0; 
      static double glimit=100.0;
@@ -68,25 +73,25 @@ void Bracket_Minimum(double &a, double &b, double &c, Opt_ScalarFType F,
      
      double ulim,u,r,q,fu;
 
-     double fa=F(a,p);
-     double fb=F(b,p);
+     double fa=F(a);
+     double fb=F(b);
      if (fb > fa) 
      {
-	  SWAP(a,b);
-	  SWAP(fa,fb);
+	  Swap(a,b);
+	  Swap(fa,fb);
      }
      c=b+golden*(b-a);
-     double fc=F(c,p);
+     double fc=F(c);
      while (fb > fc) 
      {
 	  r=(b-a)*(fb-fc);
 	  q=(b-c)*(fb-fa);
 	  u=b-((b-c)*q-(b-a)*r)/
-	       (2.0*SIGN(MAX(fabs(q-r),epsilon),q-r));
+	       (2.0*Sign(Max(fabs(q-r),epsilon),q-r));
 	  ulim=b+glimit*(c-b);
 	  if ((b-u)*(u-c) > 0.0) 
 	  {
-	       fu=F(u,p);
+	       fu=F(u);
 	       if (fu < fc) 
 	       {
 		    a=b;
@@ -102,24 +107,24 @@ void Bracket_Minimum(double &a, double &b, double &c, Opt_ScalarFType F,
 		    return;
 	       }
 	       u=c+golden*(c-b);
-	       fu=F(u,p);
+	       fu=F(u);
 	  } 
 	  else if ((c-u)*(u-ulim) > 0.0) 
 	  {
-	       fu=F(u,p);
+	       fu=F(u);
 	       if (fu < fc) 
 	       {
 		    shift(b,c,u,c+golden*(c-b));
-		    shift(fb,fc,fu,F(u,p));
+		    shift(fb,fc,fu,F(u));
 	       }
 	  } else if ((u-ulim)*(ulim-c) >= 0.0) 
 	  {
 	       u=ulim;
-	       fu=F(u,p);
+	       fu=F(u);
 	  } else 
 	  {
 	       u=c+golden*(c-b);
-	       fu=F(u,p);
+	       fu=F(u);
 	  }
 	  shift(a,b,c,u);
 	  shift(fa,fb,fc,fu);
@@ -127,10 +132,8 @@ void Bracket_Minimum(double &a, double &b, double &c, Opt_ScalarFType F,
 
 }
 
-
-double Brent_Optimize(double &x, 
-		      double ax, double bx, double cx, 
-		      Opt_ScalarFType F, void *p, double tol)
+double Brent_Optimize(double &x, double ax, double bx, double cx, 
+		      Func_RR &F, double tol)
 {
      static double cgold=(3.0-sqrt(5.0))/2.0;
      static long itmax= 200;
@@ -142,7 +145,7 @@ double Brent_Optimize(double &x,
      a=(ax < cx ? ax : cx);
      b=(ax > cx ? ax : cx);
      x=x2=x3=bx;
-     f2=f3=fx=F(x,p);
+     f2=f3=fx=F(x);
      long iter=0;
      do
      {
@@ -169,15 +172,15 @@ double Brent_Optimize(double &x,
 		    d=p/q;
 		    u=x+d;
 		    if (u-a < tol2 || b-u < tol2)
-			 d=SIGN(tol1,xm-x);
+			 d=Sign(tol1,xm-x);
 	       }
 	  } 
 	  else 
 	  {
 	       d=cgold*(e=(x >= xm ? a-x : b-x));
 	  }
-	  u=(fabs(d) >= tol1 ? x+d : x+SIGN(tol1,d));
-	  fu=F(u,p);
+	  u=(fabs(d) >= tol1 ? x+d : x+Sign(tol1,d));
+	  fu=F(u);
 	  if (fu <= fx) 
 	  {
 	       if (u >= x) a=x; else b=x;
@@ -202,34 +205,46 @@ double Brent_Optimize(double &x,
 	  }
 	  iter++;
      }while(iter<itmax);
-     printf("Too many iterations in brent");
+     Error_Flag(Error_Mat); // THIS ERROR!?!?!?!?!
      return fx;
 }	
 #undef shift
 
-double SD_Optimize(Vector &X, Opt_VectorFType F, void *p, double tol)
+double SD_Optimize(Vector &X,double(*f)(const Vector&,void*),void *p, 
+		   double tol)
+{
+     Func_VR F(f,p);
+     return SD_Optimize(X,F,tol);
+}
+
+double SD_Optimize(Vector &X, Func_VR &F, double tol)
 {
      static long itmax=300;
      static double epsilon=1e-12;
      long N=X.N;
      
-     
      Vector G(N);
      
-     double fp=FuncGrad(G,X,F,p);
+     double fp=Func_Grad(G,X,F);
      for (long its=1;its<=itmax;its++) 
      {
-	  double fret=Line_Optimize(X,G,F,p,tol); 
+	  double fret=Line_Optimize(X,G,F,tol); 
 	  if (2.0*fabs(fret-fp) <= tol*(fabs(fret)+fabs(fp)+epsilon)) 
 	       return fret;
-	  fp=FuncGrad(G,X,F,p);
+	  fp=Func_Grad(G,X,F);
      }
-     merror("Too many iterations in SD_Optimize\n");
+     Error("Too many iterations in SD_Optimize\n");
      return fp;
-
 }
 
-double CG_Optimize(Vector &X, Opt_VectorFType F, void *p, double tol)
+double CG_Optimize(Vector &X,double(*f)(const Vector&,void*),void *p, 
+		   double tol)
+{
+     Func_VR F(f,p);
+     return CG_Optimize(X,F,tol);
+}
+
+double CG_Optimize(Vector &X, Func_VR &F, double tol)
 {
      static long itmax=300;
      static double epsilon=1e-10;
@@ -241,28 +256,34 @@ double CG_Optimize(Vector &X, Opt_VectorFType F, void *p, double tol)
      Vector H(N);
      Vector Xi(N);
      
-     fp=FuncGrad(Xi,X,F,p);
+     fp=Func_Grad(Xi,X,F);
      G=(-1.0)*Xi;
      Xi=H=G;
      for (long its=1;its<=itmax;its++) 
      {
-	  fret=Line_Optimize(X,Xi,F,p,tol); 
+	  fret=Line_Optimize(X,Xi,F,tol); 
 	  if (2.0*fabs(fret-fp) <= tol*(fabs(fret)+fabs(fp)+epsilon)) 
 	       return fret;
-	  fp=FuncGrad(Xi,X,F,p);
+	  fp=Func_Grad(Xi,X,F);
 	  gg=Dot(G,G);
 	  dgg=Dot(Xi+G,Xi);
 	  if (gg==0.0) return fp;
 	  double gam=dgg/gg;
-	  G=(-1.0)*Xi;
+	  G=-Xi;
 	  Xi=H=G+gam*H;
      }
-     merror("Too many iterations in CG_Optimize\n");
+     Error("Too many iterations in CG_Optimize\n");
      return fp;
-
 }
 
-double Powell_Optimize(Vector &P, Opt_VectorFType F, void *arg, double tol)
+double Powell_Optimize(Vector &X,double(*f)(const Vector&,void*),void *p, 
+		   double tol)
+{
+     Func_VR F(f,p);
+     return Powell_Optimize(X,F,tol);
+}
+
+double Powell_Optimize(Vector &P, Func_VR &F, double tol)
 {
      static long itmax=300;
      long ibig; double del, fp, fptt, t;
@@ -270,7 +291,7 @@ double Powell_Optimize(Vector &P, Opt_VectorFType F, void *arg, double tol)
 
      Vector Pt(P), Ptt(N), Xit(N);
      Matrix Xi=Unit(N);
-     double fret=F(P,arg);
+     double fret=F(P);
      for (long iter=1;;iter++)
      {
 	  fp=fret;
@@ -280,7 +301,7 @@ double Powell_Optimize(Vector &P, Opt_VectorFType F, void *arg, double tol)
 	  {
 	       Xit=Xi.Col(i);
 	       double fptt=fret;
-	       fret=Line_Optimize(P,Xit,F,arg,tol);
+	       fret=Line_Optimize(P,Xit,F,tol);
 	       if (fabs(fptt-fret)>del)
 	       {
 		    del=fabs(fptt-fret);
@@ -293,76 +314,82 @@ double Powell_Optimize(Vector &P, Opt_VectorFType F, void *arg, double tol)
 	  }
 	  if (iter==itmax) 
 	  {
-//	       merror("Powell_Optimize, too many iter\n");
+	       // Error("Powell_Optimize, too many iter\n");
 	       return fret;
 	  }
 	  Ptt=2.0*P-Pt;
 	  Xit=P-Pt;
 	  Pt=P;
-	  fptt=F(Ptt,arg);
+	  fptt=F(Ptt);
 	  if (fptt < fp)
 	  {
-	       t=2.0*(fp-2.0*fret+fptt)*sqr(fp-fret-del)-del*sqr(fp-fptt);
+	       t=2.0*(fp-2.0*fret+fptt)*Sqr(fp-fret-del)-del*Sqr(fp-fptt);
 	       if (t<0.0)
 	       {
-		    fret=Line_Optimize(P,Xit,F,arg,tol);
-		    Xi.Put_Col(Xi.Col(N),ibig);
-		    Xi.Put_Col(Xit,N);
+		    fret=Line_Optimize(P,Xit,F,tol);
+		    Xi.Set_Col(Xi.Col(N),ibig);
+		    Xi.Set_Col(Xit,N);
 	       }
 	  }
      }
 }
 
 
-double Annealing_Optimize(Vector &X, Opt_VectorFType F, void *p, 
-			  void *annealing_params)
+double Annealing_Optimize(Vector &X,double(*f)(const Vector&,void*),void *p, 
+     Annealing_Params *Q)
 {
-     double betamin=1.0;
-     double betamax=1000.0;
-     double rbeta=1.02;
-     long ntimes=1000;
-     double A0=0.001;
+     Func_VR F(f,p);
+     return Annealing_Optimize(X,F,Q);
+}
 
-     long N=X.N;
-     
-     if (annealing_params!=NULL)
+double Annealing_Optimize(Vector &X, Func_VR &F, Annealing_Params *Q)
+{
+     double Beta_Min, Beta_Max, R_Beta, A0; long N_Times;
+     if (!Q)
      {
-	  Annealing_Params *Q=(Annealing_Params*)annealing_params;
-	  betamin=Q->betamin;
-	  betamax=Q->betamax;
-	  rbeta=Q->rbeta;
-	  ntimes=Q->ntimes;
+	  Beta_Min=1.0;
+	  Beta_Max=1000.0;
+	  R_Beta=1.02;
+	  N_Times=1000;
+	  A0=0.001;
+     }
+     else
+     {	  Beta_Min=Q->Beta_Min;
+	  Beta_Max=Q->Beta_Max;
+	  R_Beta=Q->R_Beta;
+	  N_Times=Q->N_Times;
 	  A0=Q->A0;
      }
 
-     double f=F(X,p);
+     long N=X.N;
+     
+     double f=F(X);
      double fbest=f;
      Vector Xbest=X;
 
-     for (double beta=betamin;beta<=betamax;beta*=rbeta)
+     for (double beta=Beta_Min;beta<=Beta_Max;beta*=R_Beta)
      {
 	  long naccepted=0;
-	  for (long nt=1;nt<=ntimes;nt++)
+	  for (long nt=1;nt<=N_Times;nt++)
 	  {
 	       Vector X2(X);
-	       long idx=rand_int(1,N);
-	       X2(idx)+=A0*rand_double(-1.0,1.0);
-	       double f2=F(X2,p);
+	       long idx=Rand_I(1,N);
+	       X2(idx)+=A0*Rand(-1.0,1.0);
+	       double f2=F(X2);
 	       if (f2<fbest)
 	       {
 		    fbest=f2;
 		    Xbest=X2;
 	       }
-	       if (f2<f || rand_double()<exp(-beta*(f2-f)))
+	       if (f2<f || Rand()<exp(-beta*(f2-f)))
 	       {
 		    X=X2;
 		    f=f2;
 		    naccepted++;
 	       }
-	       if (nt == ntimes/10) // make it a parameter?
+	       if (nt == N_Times/10) // make it a parameter?
 	       {
 		    double acceptance_ratio=(double)naccepted/(double)(nt);
-		    // printf("Acc: %g\n",acceptance_ratio);
 		    if (acceptance_ratio<0.4) A0/=1.2;
 		    if (acceptance_ratio>0.6) A0*=1.2;
 	       }
@@ -370,8 +397,4 @@ double Annealing_Optimize(Vector &X, Opt_VectorFType F, void *p,
      }
      X=Xbest;
      return fbest;
-     
-    // printf("Final epsilon: %g\n",eps);
-     //error=Conjugate_Fit(D,X,Y,f);
-     //return error;
 }

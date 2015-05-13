@@ -1,12 +1,12 @@
 // 100914, easyim
-#include"easyim.h"
+#include"Image.h"
 
 void EI_Start()
 {
      imlib_set_cache_size(2048 * 1024);
-     imlib_context_set_display(EXInfo.display);
-     imlib_context_set_visual(EXInfo.visual);
-     imlib_context_set_colormap(EXInfo.colormap);
+     imlib_context_set_display(EX_Info.display);
+     imlib_context_set_visual(EX_Info.visual);
+     imlib_context_set_colormap(EX_Info.colormap);
 }
 
 EI_Image EI_Load(const char *name) // also sets current image!
@@ -29,19 +29,19 @@ int EI_Get_Height()
 
 void EI_Render(int x, int y)
 {
-     if (EXCW->use_buffer)
-	  imlib_context_set_drawable(EXCW->buffer); 
+     if (EX_CW->use_buffer)
+	  imlib_context_set_drawable(EX_CW->buffer); 
      else
-	  imlib_context_set_drawable(EXCW->window); 
+	  imlib_context_set_drawable(EX_CW->window); 
      imlib_render_image_on_drawable(x,y);
 }
 
 void EI_Render_Scaled(int x, int y, int w, int h)
 {
-     if (EXCW->use_buffer)
-	  imlib_context_set_drawable(EXCW->buffer); 
+     if (EX_CW->use_buffer)
+	  imlib_context_set_drawable(EX_CW->buffer); 
      else
-	  imlib_context_set_drawable(EXCW->window); 
+	  imlib_context_set_drawable(EX_CW->window); 
      EI_Image nueva=imlib_create_image(w,h);
      EI_Image antigua=imlib_context_get_image();
      int oldw=EI_Get_Width();
@@ -60,10 +60,10 @@ void EI_Free()
 
 EI_Image EI_Capture(int x, int y, int w, int h) // also sets current image
 {
-     if (EXCW->use_buffer)
-	  imlib_context_set_drawable(EXCW->buffer); 
+     if (EX_CW->use_buffer)
+	  imlib_context_set_drawable(EX_CW->buffer); 
      else
-	  imlib_context_set_drawable(EXCW->window); 
+	  imlib_context_set_drawable(EX_CW->window); 
      EI_Image image=imlib_create_image_from_drawable(0,0,0,w,h,1);
      imlib_context_set_image(image);
      return image;
