@@ -621,6 +621,26 @@ Vector operator-(const Vector &A, const Vector &B)
      return R;
 }
 
+Vector operator+(const Vector &V, double K)
+{
+     return V+Constant(K,V.N);
+}
+
+Vector operator+(double K, const Vector &V)
+{
+     return Constant(K,V.N)+V;
+}
+
+Vector operator-(const Vector &V, double K)
+{
+     return V-Constant(K,V.N);
+}
+
+Vector operator-(double K, const Vector &V)
+{
+     return Constant(K,V.N)-V;
+}
+
 Vector operator*(double x, const Vector& V)
 {
      Vector R(V);

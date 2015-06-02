@@ -143,6 +143,7 @@ void Graph::Update_Index()
 {
      updated=true;
      I.Create(N);
+     if (!N) return;
      I(1)=0;
      for (long i=2;i<=N;i++)
      {

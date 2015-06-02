@@ -139,12 +139,8 @@ void EX_Enable_Buffer()
      EX_CW->buffer = XCreatePixmap(EX_Info.display, EX_Info.root,
 				  wa.width, wa.height, wa.depth);
 //     printf("Created buffer, with size: %ld\n",sizeof(EX_CW->buffer));
-     XSetForeground(EX_Info.display, EX_Info.gc, 
-		    BlackPixelOfScreen(DefaultScreenOfDisplay(EX_Info.display)));
-     XFillRectangle(EX_Info.display, EX_CW->buffer, EX_Info.gc, 
-		    0, 0, wa.width, wa.height);
      EX_CW->use_buffer=true;
-
+     EX_Clear();
 }
 
 void EX_Disable_Buffer()
@@ -176,16 +172,13 @@ void EX_Flush()
 {
      if (EX_CW->use_buffer)
      {
-	  XFlush(EX_Info.display);
 	  XWindowAttributes wa;
 	  XGetWindowAttributes(EX_Info.display, EX_CW->window, &wa);
 	  XCopyArea(EX_Info.display, EX_CW->buffer, 
 		    EX_CW->window, EX_Info.gc,
 		    0, 0, wa.width, wa.height, 0, 0);
      }
-     // XMapRaised(EX_Info.display,EX_CW->window);
      XFlush(EX_Info.display);
-//     XSync(EX_Info.display,true);
 }
 
 void EX_Close()

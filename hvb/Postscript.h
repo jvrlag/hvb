@@ -55,10 +55,10 @@ void PS_Arc(FILE *psfile, double cx0, double cy0, double R,
 	    double a0, double a1);
 void PS_Arc(double cx0, double cy0, double R,double a0, double a1);
 
-void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2,
-	      double x3, double y3, double x4, double y4);
-void PS_Curve(double x1, double y1, double x2, double y2,
-	      double x3, double y3, double x4, double y4);
+/* void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2, */
+/* 	      double x3, double y3, double x4, double y4); */
+/* void PS_Curve(double x1, double y1, double x2, double y2, */
+/* 	      double x3, double y3, double x4, double y4); */
 
 void PS_Prepare_Font(FILE *psfile, const char *fontname, int size);
 void PS_Prepare_Font(const char *fontname, int size);

@@ -174,21 +174,21 @@ void PS_Arc(double cx0, double cy0, double R, double a0, double a1)
      PS_Arc(PS_Current_File,cx0,cy0,R,a0,a1);
 }
 
-void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2,
-	      double x3, double y3, double x4, double y4)
-{
-     fprintf(psfile,"n\n");
-     fprintf(psfile,"%.4g %.4g m\n",x1,y1);
-     fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g %.4g curveto\n",
-	     x2,y2,x3,y3,x4,y4);
-     fprintf(psfile,"s\n");
-}
+// void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2,
+// 	      double x3, double y3, double x4, double y4)
+// {
+//      fprintf(psfile,"n\n");
+//      fprintf(psfile,"%.4g %.4g m\n",x1,y1);
+//      fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g %.4g curveto\n",
+// 	     x2,y2,x3,y3,x4,y4);
+//      fprintf(psfile,"s\n");
+//}
 
-void PS_Curve(double x1, double y1, double x2, double y2,
-	      double x3, double y3, double x4, double y4)
-{
-     PS_Curve(PS_Current_File,x1,y1,x2,y2,x3,y3,x4,y4);
-}
+// void PS_Curve(double x1, double y1, double x2, double y2,
+// 	      double x3, double y3, double x4, double y4)
+// {
+//      PS_Curve(PS_Current_File,x1,y1,x2,y2,x3,y3,x4,y4);
+// }
 
 void PS_Polygon(FILE *psfile, const Vector &X, const Vector &Y)
 {

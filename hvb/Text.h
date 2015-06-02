@@ -11,27 +11,27 @@ public:
      long N;
      char *D;
      Text();
-     Text(const char *);
-     Text(const Text &);
+     Text(const char*);
+     Text(const Text&);
      ~Text();
      void Start();
-     void Create(const char *);
-     void Load(char *);
+     void Create(const char*);
+     void Load(char*);
      void Destroy();
 
-     long Get_Line(FILE *); // read a line from a file, ret -1 is failure
+     long Get_Line(FILE*); // read a line from a file, ret -1 is failure
      void Write();
 
-     void Append(const char *);
-     void Append(const char *, long);
-     void Append(const Text &);
+     void Append(const char*);
+     void Append(const char*, long);
+     void Append(const Text&);
      void Append(const char);
 
-     void Append_F(const char *, long i);
-     void Append_F(const char *, double f);
+     void Append_F(const char*, long i);
+     void Append_F(const char*, double f);
 
      Text& operator=(const Text&);
-     Text& operator=(const char *);
+     Text& operator=(const char*);
 
      void Strip_Blanks();
 
