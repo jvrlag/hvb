@@ -270,7 +270,8 @@ double Comb(double x, double y);
 - Time handling
 
 double Clock(); 
-       Number of seconds since machine was started.
+       Number of physical seconds since the machine was started. Not
+       CPU tics, no calendar time, plain physical seconds.
 
 double Delay(double t);  
        Does nothing for t seconds.
@@ -1786,16 +1787,17 @@ is substituted by the function pointer and the parameters pointer.
 
 *** GRAPH STRUCTURES ***
 
-A graph is simply a set of discrete sites connected by links. The
-header file "Graph.h" contains the class Graph, which represents a
-non-directed simple graph (no more than one link between two sites).
+A graph is a set of sites connected by links. The header file
+"Graph.h" contains the class Graph, which represents a directed or
+non-directed simple graph (no more than one link between two
+sites). By default, a graph will be non-directed.
 
-The class Graph contains some pieces of data: N is the number of sites
-and Nl the number of links. Then V is a set of Lists, such that V[p]
-is the List of neighbors of site p, but need not be accessed by the
-user. After the Graph has been fully defined, if the method
-Update_Index() is called, it will update an internal link index, which
-will be used to access the links.
+The class Graph contains the following data: N is the number of sites,
+Nl is the number of links and the boolean directed tells us whether it
+is directed or not. Two internal structures, which need not be
+accessed by the user, have the actual connection information. V is a
+set of Lists, such that V[p] is the List of neighbors of site p. I1
+and I2 are two lists, such that link k connects I1(k) to I2(k). 
 
 
 - Methods of the Graph class
@@ -1820,6 +1822,12 @@ void Create(long n);
 
 void Destroy();
      Release the memory, make N=Nl=0.
+
+void Set_Directed();
+     Assert that the Graph is directed, and update the link indices.
+
+void Set_Undirected();
+     Assert that the Graph is undirected, and update the link index.
 
 long Add_Site(long p=0); 
      Add a new site to the Graph, linked to site p. If p is absent, unlinked.
@@ -1847,8 +1855,8 @@ void Clear();
      Delete all links, keep sites.
 
 void Update_Index();
-     Updates the link index. It must be used in order to access links
-     by their index.
+     Updates the link index. Under normal conditions, the user never
+     needs to call this function.
 
 long Degree(long p) const; 
      Returns the number of neighbors of site p.

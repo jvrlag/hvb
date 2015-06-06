@@ -166,10 +166,9 @@ List Error_Flags;
 // CPU time, Time in seconds since starting machine
 double Clock()
 {
-    static const long clock_interval = sysconf(_SC_CLK_TCK);
-    struct tms t;
-    times(&t);
-    return (t.tms_utime + t.tms_stime) * (1.0/clock_interval);
+     struct timespec ts;
+     clock_gettime(CLOCK_MONOTONIC, &ts);
+     return (double)ts.tv_sec+ts.tv_nsec/1e9;
 }
 
 void Delay(double Dt)
