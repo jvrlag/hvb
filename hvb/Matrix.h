@@ -254,6 +254,7 @@ Matrix Zero(long,long=0);
 Matrix Unit(long,long=0);
 Matrix Diag(const Vector &E);
 void Write(const Matrix &M);
+Matrix Constant(double x, long, long);
 
 Matrix operator-(const Matrix &);
 Matrix operator+(const Matrix &, const Matrix &);

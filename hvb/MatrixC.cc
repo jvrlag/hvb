@@ -1908,7 +1908,7 @@ MatrixC operator|(const MatrixC &M, const VectorC &B)
 MatrixC operator|(const VectorC &B, const MatrixC &M)
 {
      MatrixC R(M);
-     R.Append_Col(B);
+     R.Insert_Col(B,1);
      return R;
 }
 

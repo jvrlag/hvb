@@ -2061,7 +2061,7 @@ Table operator|(const Table &T, const List &L)
 Table operator|(const List &L, const Table &T)
 {
      Table R(T);
-     R.Append_Col(L);
+     R.Insert_Col(L,1);
      return R;
 }
 

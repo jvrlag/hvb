@@ -70,7 +70,7 @@ long Text::Get_Line(FILE *fich)
      return Nr;
 }
  
-void Text::Write()
+void Text::Write() const
 {
      if (!D) printf("Null Text\n");
      printf("%s\n",D);
@@ -347,7 +347,7 @@ Text Text::Get_Field(long n) const
      long i,j;
      for (i=0;i<N;i++)
      {
-          bool spacing=(D[i]==' ' || D[i]=='\t');
+          bool spacing=Is_Space(D[i]);
           if (spacing_old && !spacing) count++;
           if (count==n) break;
           spacing_old=spacing;
@@ -360,7 +360,7 @@ Text Text::Get_Field(long n) const
      }
      for (j=i;j<N;j++)
      {
-          bool spacing=(D[j]==' ' || D[j]=='\t');
+          bool spacing=Is_Space(D[i]);
           if (spacing) break;
      }
      return Part(i,j);
@@ -384,7 +384,7 @@ long Text::Count_Fields() const
      bool spacing_old=true;
      for (long i=0;i<N;i++)
      {
-          bool spacing=(D[i]==' ' || D[i]=='\t');
+          bool spacing=Is_Space(D[i]);
           if (spacing_old && !spacing) count++;
           spacing_old=spacing;
      }
@@ -397,7 +397,7 @@ Vector Text::To_Vector() const
      bool spacing_old=true;
      for (long i=0;i<N;i++)
      {
-          bool spacing=(D[i]==' ' || D[i]=='\t');
+          bool spacing=Is_Space(D[i]);
           if (spacing_old && !spacing)
 	       S.Append(i);
           spacing_old=spacing;
@@ -419,7 +419,7 @@ List Text::To_List() const
      bool spacing_old=true;
      for (long i=0;i<N;i++)
      {
-          bool spacing=(D[i]==' ' || D[i]=='\t');
+          bool spacing=Is_Space(D[i]);
           if (spacing_old && !spacing)
 	       S.Append(i);
           spacing_old=spacing;
@@ -433,4 +433,9 @@ List Text::To_List() const
 	  R(k)=x;
      }
      return R;
+}
+
+bool Is_Space(const char q)
+{
+     return (q==' ' || q=='\t' || q=='\n');
 }
