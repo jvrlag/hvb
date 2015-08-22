@@ -1,0 +1,2542 @@
+% 150529-150602-150806-150822
+
+
+*** HVB ***
+
+-- The tiniest and simplest C++ library to help scientific computing --
+
+Javier Rodríguez-Laguna, Giovanni Ramírez and Silvia N. Santalla.
+
+
+==================================================================
+
+
+INDEX
+
+- Purpose
+
+- Getting and Installing Hvb
+
+- Tutorial
+
+- Rules of style
+
+- Simple Extensions: 
+  * Simple functions
+  * Binary numbers
+  * Random numbers
+  * Time
+  * Error handling
+
+- Lists and tables
+
+- Linear algebra
+
+- Optimization
+
+- Calculus
+
+- Graph structures
+
+- Text parsing
+
+- Graphics
+
+- Image handling
+
+- PostScript output
+
+
+=================================================================
+
+
+*** PURPOSE ***
+
+The Hvb library is a tiny scientific library in C++, made by
+scientists and for scientists. It is simple to use, yet powerful
+enough to allow you to state of the art performance. Its guiding
+principle is to provide mechanism, not policy. It tries not to
+interfere with your coding style.
+
+Hvb provides a few classes and functions to perform many usual tasks
+in scientific computing. It is based upon BLAS and LAPACK for linear
+algebra, but it provides a far simpler interface, in C++ style. It
+allows you to give graphical output to your simulations, and see in
+real time what is going on. Moreover, it provides machinery to create
+your own PostScript files, graph handling, file handling,
+optimization, random numbers, binary numbers, etc. Of course, you may
+miss very important functions, because Hvb is strongly biased to our
+own practice. We will try to enlarge it, keeping (as far as possible)
+backwards compatibility.
+
+Please, provide feedback through jvrlag AT gmail DOT com.
+
+
+=====================================================================
+
+
+*** GETTING AND INSTALLING HVB ***
+
+Hvb is free software, and is released under the GPL. You can download
+it from the github repository: 
+
+http://github.com/jvrlag/hvb
+
+The Hvb package depend on the following libraries:
+
+- BLAS & LAPACK, for linear algebra.
+- Xlib, for graphics under X-Window system
+- Imlib2, for image manipulation.
+
+If you want to run Hvb in a system without graphics capabilities,
+remove the files EX.* and Image.*.
+
+In order to install Hvb, download hvb.tgz and run
+
+make test
+sudo make install
+
+It will install the headers, by default, in /usr/local/include/Hvb,
+and the library itself in /usr/local/lib/libHvb.a.
+
+In the Examples directory of the Hvb distribution you can find many
+short programs to exemplify the use of Hvb. In order to compile and
+run program foobar.cc, you can run
+
+g++ -o foobar foobar.cc -I/usr/local/include/Hvb -L/usr/local/lib/ -lHvb -lImlib2 -lX11 -lblas -llapack
+
+Alternatively, you can use the Makefile in the Examples directory and run
+
+make xfoobar
+
+That Makefile adopts the convention that all files of the form x*.cc
+provide executables. Unless you know better, it is advisable to copy
+that Makefile to your working directory.
+
+
+=====================================================================
+
+
+*** QUICK TUTORIAL ***
+
+A minimal program under the Hvb environment will include the file
+"Common.h".
+
+#include"Common.h"
+int main()
+{
+	List L=List_Range(1,10);
+	L.Reverse();
+	L.Write();
+}
+
+That program declares a List L, which is simply an array of integers
+(precisely, long ints). It is made equal to the list ranging numbers
+from 1 to 10. Then, it reverses the List and prints it to the screen.
+
+A minimal graphical program is the following one:
+
+#include"EX.h"
+int main()
+{
+	EX_Start(100,100,400,400);
+	EX_Line(1,1,400,400);
+	EX_Color("red");
+	EX_Fill_Circle(200,200,100);
+	EX_Read_Key();
+}
+
+Notice that all the graphical functions start with "EX". All functions
+in Hvb are capitalized, and words are separated with underscores. The
+first line opens up a window, at position (100,100) of your screen,
+with width and height 400. Now, the plotting commands start: we draw a
+line, select the red color, and draw a circle. Now, nothing is done
+until the user presses a key.
+
+A minimal linear algebra program may work like this
+
+#include"Matrix.h"
+int main()
+{
+	Rand_Open(0);
+	long L=5;
+	Matrix A(L);
+	for (long i=1;i<=L;i++)
+	    for (long j=i;j<=L;j++)
+	        A(i,j)=A(j,i)=Rand(-1,1);
+	Matrix Basis; Vector Eigen;
+	A.Diagonalize(Basis,Eigen);
+	A.Write();
+	Eigen.Write();
+	Basis.Write();
+}
+
+First, we open up the random number generator. Then, we define a
+Matrix object of size 5x5. If it is rectangular, provide both rows and
+columns. Then, we fill it up with random numbers homogeneously
+distributed in [-1,1], but making sure the full matrix is
+symmetric. Now we define one more matrix, Basis, and a Vector,
+Eigen. Next, we ask LAPACK to diagonalize our Matrix, put the basis of
+eigenvectors in Basis and the eigenvalues in the Eigen. Next, we send
+all three objects to the screen.
+
+
+=====================================================================
+
+
+*** RULES OF STYLE ***
+
+First of all, some rules of style for the naming and usage of the Hvb
+functions and classes, which may help you remember them. 
+
+- All real numbers will be double, all integers will be long. Complex
+  numbers are called cmplx, made of two doubles.
+
+- All names of Hvb objects / functions are capitalized, words
+  separated by underscores.
+
+- For actions (functions, methods) we prefer verbs to nouns, e.g.:
+  Invert, not Inverse.
+
+- Functions which are "questions" start with "Is_". For example, List
+  L; L.Is_Zero();
+
+- Functions which return an object of the same kind come in two
+  flavors: as methods, they transform the object; as functions, they
+  return a new object. As an example, compare: "Matrix
+  Ainv=Invert(A);" versus "A.Invert();".
+
+- Some functions come in two flavors: an easy-syntax one and an
+  efficient one. They are marked in the documentation.
+
+- If a function returns more than one output value, they will be among
+  the arguments, in the first slots. E.g.: Graph G;
+  G.Link_Sites(s1,s2,l); returns into s1 and s2 the sites connected by
+  link l.
+
+- If compiled with the DEBUG option (-DDEBUG), the system makes
+  typical checks, such as ranges for Vectors, etc. Otherwise, it is
+  much more careless (but faster).
+
+
+=====================================================================
+
+ 
+*** SIMPLE FUNCTIONS ***
+
+In this section we show the prototypes for some simple extensions of
+the C/C++ language in Hvb.
+
+
+double Sqr(double x);            
+       Square function, x*x
+
+double Max(double a, double b);  
+       Maximum, also in long version
+
+double Min(double a, double b);  
+       Minimum, also in long version
+
+double Swap(double& a, double& b); 
+       Swaps the values of a and b. It also works with int, long,
+       double and cmplx.
+
+long Mop(long k);      
+       Minus One Power k, i.e. (-1)^k.
+
+double Sign(double x); 
+       Sign of x, -1, 0 or 1.
+
+double Sign(double x, double y); 
+       Sign of y times x, sign(y)*x
+
+
+- The combinatorial functions
+
+long   Fact(long n);   
+       Factorial function; if small numbers, uses products. Otherwise,
+       the Gamma function.
+
+double Fact(double x); 
+       Factorial, defined using the Gamma function.
+
+long   Comb(long n, long m);        
+       Binomial coefficient. Again, if small numbers, uses
+       products. Otherwise, uses the Gamma function.
+
+double Comb(double x, double y); 
+       Binomial coefficient, using the Gamma function.
+
+
+- Time handling
+
+double Clock(); 
+       Number of physical seconds since the machine was started. Not
+       CPU tics, no calendar time, plain physical seconds.
+
+double Delay(double t);  
+       Does nothing for t seconds.
+
+
+- Random numbers
+
+We have used a random number generator from Donald Knuth's book
+"Seminumerical algorithms", called the Mersenne's twister.
+
+void Rand_Open(long s); 
+       Starts the random number generator, with seed s. If you do not
+       know which seed to use, use 0 or time(0). It needs to allocate
+       some space in memory.
+
+bool Rand_Started;
+       A boolean variable that can tell you whether the random number
+       generator has been started or not.
+
+void Rand_Close();
+       Releases the space allocated in memory by the random number
+       generator. 
+
+void Rand(double a, double b);
+       Returns a uniform deviate in the interval [a,b].
+
+void Rand();
+       Returns a uniform deviate in [0,1].
+
+void Rand_I(long a, long b);
+       Returns an random integer value from a to b, both included,
+       with equal probabilities.
+
+void Rand_Gaussian(double mu, double sigma);
+       Returns a Gaussian deviate with average mu and deviation
+       sigma. Obtained with the Box-Muller algorithm.
+
+
+- Binary numbers
+
+long  Pow_2(long n);
+      2 power n.
+
+long  Log_2(long n);
+      Logarithm of n, basis 2, rounded from below. E.g. Log_2(10)=3.
+
+bool  Bit(long X, long pos);
+      Get the pos-th bit of long X. Positions start with 0.
+
+long  Max_Bit(long X);
+      Get the maximal bit of X. Coincides with Log_2.
+
+long  Flip_Bit(long X, long pos); 
+      Flips 0<->1 the pos-th bit of X.
+
+long  Put_Bit(long X, long pos, long value);
+      Put the pos-th bit of X to value (0,1).
+
+long  Swap_Bits(long X, long pos1, long pos2);
+      Swap the pos1-th and pos2-th bits of X.
+
+long  Reverse_Bits(long X, long maxbit=0);
+      Reverse bits of X, up to maxbit (if set).
+
+long  Insert_Bit(long X, long pos, long value);
+      Insert bit value at position pos, and shift the rest up.
+
+long  Count_Ones(long X); 
+      Number of ones in the binary expansion of X.
+
+long  Next_In_Sector(long X);
+      Smallest number larger than X and with the same number of ones.
+
+char* Bin_2_String(long X, long maxbit=0);
+      Returns a string representing X in binary.
+
+
+- Error handling
+
+A few functions are handy to help error handling. The system defines a
+few types of errors: No_Error, Error_IO (Input/Output), Error_Mem
+(Memory handling error) or Error_Mat (Mathematical error). Each time a
+non-fatal error is detected, one of those error flags is appended to a
+List called Error_Flags.
+
+void Error(char* message);
+     Fatal error, exit the program and write the message. The function
+     is defined as no-inline, so it can always be used as a breakpoint
+     for debugging.
+
+void Error_Flag(Error_Flag E)
+     A non-fatal error has shown up, send flag to the List.
+
+Error_Type Error_Read();
+     Returns the last error flag produced, removing it from the List.
+
+void Error_Clean();
+     Cleans up the Error_Flag List.
+
+
+=====================================================================
+
+
+*** LISTS AND TABLES ***
+
+List's are one-dimensional arrays of long integers, while Table's are
+two-dimensional ones. They are dynamical objects in memory, so their
+size can change at will. 
+
+A List consists only of a long, marking the number of elements, N, and a
+pointer to long, D, which contain the actual data. Thus, L.N means its
+length. 
+
+
+- List constructors
+
+List L;    
+     Empty constructor, size 0 List.
+
+List L(long N);
+     Create a List of size N, fill it up with zeroes.
+
+List L(const List& L2);
+     Create a List from another List, copying its contents.
+
+List L(long* D, long N);
+     Create a list with N elements, data will point to D.
+
+
+- Methods for creating Lists
+
+void Start(); 
+     Raw initializer, do not use unless you know what you are
+     doing. For advanced users: only use if created from an malloc
+     function.
+
+void Create(long N);
+     Destroy the previous content and create a new List with N
+     elements.
+
+void Load(long* D, long N);
+     Destroy the previous content, create new List with N elements,
+     data will point to D.
+
+void Load_Copy(long* D, long N);
+     Destroy the previous content, create new List with N elements,
+     copy the data from D.
+
+void Transfer(List& L);
+     Destroy the previous content, the List will now be a copy of L,
+     but L will be destroyed. The reason is that the data pointer will
+     be copied from L to our new List.
+
+void Destroy();
+     Release the memory.
+
+
+- Methods for setting the elements of a List
+
+void Zero();
+     Puts all elements to zero
+
+void Set(long x);     
+     Initialize the list to a given value
+
+void Set_Part(const List& L, long p); 
+     Put List at site p, overwriting
+
+void Remove(long i, long j=0);  
+     Remove from position i to j; if no j is given, then until the end
+     of the List
+
+long Substract(long p);    
+     Eliminates all occurrences of p
+
+long Substract(const List& L); 
+     Remove all elements from List L
+
+void Append(long x);        
+     Appends an element at the end
+
+void Append(const List& L);      
+     Appends a full list at the end
+
+void Sort(long s); 
+     Sorts the list; if s>0, in increasing order
+
+void Uniquify(); 
+     Removes all repeated values
+
+void Insert(long x, long pos); 
+     Insert value x at position pos
+
+void Insert(const List& L, long pos); 
+     Insert List L at position pos
+
+void Reverse(long i=0, long j=0); 
+     Reverse the List, all or part (from i to j).
+
+void Swap(long p, long q);  
+     Swaps the values at two positions
+
+void Part(long p0, long p1); 
+     Remove all elements <p0 and >p1.
+
+void Rand(long a, long b);
+     Set all entries of the list to random integers in the range [a,b].
+
+
+- Methods for retrieving information from a List
+
+long Find(long x, long p=1) const; 
+     Finds first appearance from position p, returns 0 if not present
+
+long Find_Non(long x, long p=1) const;
+     Finds the first value which is not x, starting from position p
+
+List Find_All(long x) const;
+     Returns the positions of all occurrences of value x
+
+long Count(long x) const; 
+     Counts the number of appearances of value x
+
+long Min(long& pmin) const;
+     Minimal entry of the List, and puts into pmin its position. The
+     argument pmin is optional.
+  
+long Max(long& pmax) const;
+     Maximal entry of the List, and puts into pmax its position. The
+     argument pmax is optional.
+
+long Sum(long p0, long p1) const; 
+     Sum of all entries between p0 and p1 (both included). If no p0
+     and p1 are provided, then sum all elements.
+
+long Prod(long p0, long p1) const; 
+     Product of all entries between p0 and p1 (both included). If no p0
+     and p1 are provided, then sum all elements.
+
+
+- Methods for List Input/Output
+
+void Write() const;
+     Write List to stdout.
+
+bool Save_Binary(FILE* f) const;
+     Append List to an open binary file, do
+     not close it afterwards.
+
+bool Save_Binary(const char* filename) const;
+     Open file filename as binary, save List, close file.
+
+bool Load_Binary(FILE* f);
+     Load List from an open binary file, do
+     not close it afterwards.
+
+bool Load_Binary(const char* filename);
+     Open file filename as binary, load List, close file.
+
+bool Load(const char* filename);
+     Open file filename as text, load List, close file.
+
+bool Load(FILE* f);
+     Load contents from an open text file, do not close it.
+
+bool Save(const char* filename) const;
+     Open file filename as text, save List, close file.
+
+bool Save(FILE* f) const;
+     Append List contents to open text file f, do not close file.
+
+
+- Overloaded List operators
+
+C++ allows to overload some common operators which simplify enormously
+the syntax. Throughout this section, L and L2 are Lists.
+
+long  operator() (long p) const;
+long& operator() (long p);
+      Access to List entries. L(5)=10; long p=L(5);
+
+List& operator=(const List& L);
+      List assignment. L=L2;      
+
+void operator+=(const List& L);
+void operator-=(const List& L);
+      List addition-assignment. L+=L2;
+      List substraction-assignment. L-=L2;
+
+void operator*=(long K);
+void operator/=(long K);
+      Multiply / integer-divide all entries by a constant. L*=3;
+
+void operator+=(long K);
+void operator-=(long K);
+      Add / substract a constant to all entries. L+=2; 
+
+List operator+(const List &L1, const List &L2);
+List operator-(const List &L1, const List &L2);
+      List addition / substraction, L=L1+L2;
+
+List operator+(const List &L, long p); 
+List operator+(long p, const List &L); 
+List operator-(const List &L, long p);
+List operator-(long p, const List &L);
+      Add / substract a constant to all entries, L=L1+p; or L=p-L2;
+ 
+List operator-(const List &L);
+      Change sign to all entries, L=-L2;      
+
+List operator*(const List &L, long p);
+List operator/(const List &L, long p);
+List operator*(long p, const List &L);
+      Multiply / integer-divide all entries by a constant. L=2*L2;
+      L=L2/3;
+
+Hvb introduces new semantics for the two operators & and |.  Operator
+& will always mean "vertical" or "serial" appending, while | will mean
+"horizontal" or "parallel" appending. 
+
+void operator&=(long p);
+     Append p at the end of the List. L&=2;
+
+void operator&=(const List &L);
+     Append List L at the end of the List. L&=L2;
+
+List operator&(const List &L1, const List &L2);
+     Append List L1 and L2. L=L1&L2;
+
+List operator&(long p, const List &L);
+     Append value p at the beginning of List L. L=2&L2;
+
+List operator&(const List &L, long p);
+     Append value p at the end of List L.
+
+
+- More List functions (not methods!)
+
+void Copy(List &L1, const List &L2);
+     Copy the contents of L2 into L1, destroying L1.
+
+bool Is_Equal(const List &L1, const List &L2);
+     Returns true if L1 and L2 coincide.
+
+bool Is_Subset(const List &L1, const List &L2);
+     Returns true if all elements of L1 are contained in L2.
+
+List Intersect(const List &L1, const List &L2);
+     Returns the list of elements which are contained both in L1 and
+     L2, not repeated.
+
+List Combine(const List &L1, const List &L2);
+     Returns a List L, such that L(i)=L2(L1(i)).
+
+List List_Range(long a, long b);
+     Returns the List {a,a+1,...,b}.
+
+List Reverse(const List &L, long i=0, long j=0);
+     Returns the List L reversed, from positions i to j. If not
+     specified, the whole List.
+
+List Part(const List &L, long i1, long i2);
+     Return the part of the List, from positions i1 to i2 (both included).     
+
+List Substract(const List &L1, const List &L2);
+     Return the List L1, from which all entries of L2 have been
+     substracted.
+
+List Random_Permutation(long N); 
+     Returns a random permutation of the elements 1 to N.
+
+long Next_Permutation(List &L); 
+     Assuming that L is a permutation of numbers 1 to N, obtain the
+     next permutation in lexicographical order. The return value is
+     the relative sign of both permutations. If L is the last
+     permutation, the return value is zero.
+
+
+- Table constructors
+
+A Table is a two-dimensional array of integers. Its number of rows and
+columns are given in N1 and N2, and the data in the pointer *D, which
+is read by columns. Thus, T.N1 means the number of rows of the Table.
+
+Table T;
+      Empty constructor.
+
+Table T(long N1, long N2);
+      Create a Table with N1 rows and N2 columns. If N2 is not given,
+      make it square. Fill it up with zeroes.
+
+Table T(const Table &T2);
+      Create a Table, copying its contents from another one.
+
+
+- Methods for creating Tables
+
+void Start(); 
+     As with the List, a raw initializer, do not use unless
+     you know what you are doing. For advanced users: only use if
+     created from an malloc function.
+
+void Create(long n1, long n2=0);
+     Destroy the Table and create a new one, with n1 rows and n2
+     columns. If n2 is not given, make it square.
+
+void Load(long *d, long n1, long n2=0);
+     Destroy the Table and re-make it using D as the data pointer,
+     with n1 rows and n2 columns.     
+
+void Load_Copy(long *d, long n1, long n2=0);
+     Destroy the Table and re-make it, copying the contents of pointer
+     d, into a new Table with n1 rows and n2 columns.     
+
+void Transfer(Table &T);
+     Destroy the Table and re-make it, using the data pointer of Table T.
+
+void Destroy();
+     Free the associated memory, set dimensions to zero.
+
+void Resize(long n1, long n2=0);
+     Resize the Table, to have n1 rows and n2 columns. If no n2 is
+     given, make it square. Copy, as far as possible, the old
+     contents. If the new Table is larger, fill up with zeroes.
+
+
+- Methods for setting the Table data
+
+void Zero();
+     Set all entries to zero.
+
+void Set(long x);
+     Set all entries to value x.
+
+long& Elem(long i,long j);
+     Reference to the entry with row i and column
+     j. E.g. "T.Elem(2,3)=5;". Normally, we will use "T(2,3)=5;".
+
+void Set_Col(const List &L, long i);
+void Set_Row(const List &L, long i);
+     Set the i-th column (row) to be L. If sizes do not match, throw error.
+     
+void Set_Diag(const List &L);
+     Set the diagonal of the Table to be L.
+
+void Append_Col(const List &L);
+void Append_Col(const Table &T);
+void Append_Row(const List &L);
+void Append_Row(const Table &T);
+     Append to the current Table a new List, or Table, either as rows
+     or columns.
+
+void Insert_Col(const List &L, long i);
+void Insert_Row(const List &L, long i);
+     Insert a new row or column at position i, shifting the rest of
+     the Table.
+
+void Remove_Col(long i);
+void Remove_Row(long i);
+     Remove the i-th row or column, shrinking the Table.
+
+void Swap_Cols(long i,long j);
+void Swap_Rows(long i,long j);
+     Swap (interchange the contents) of rows / columns i and j.     
+
+void Permute_Cols(const List &L);
+void Permute_Rows(const List &L);
+     Permute the columns / rows of the Table, according to the
+     permutation List L.
+
+void Sort_Cols();
+     Sort the columns of the Table, in increasing order of the first
+     entry.
+
+void T();
+     Transpose the Table, i.e., interchange rows and columns.
+
+void Part(long i0, long j0, long i1, long j1);
+     Cut the Table,retaining only the sub-Table from point (i0,j0) to
+     (i1,j1), both included. In other words: retain only rows from i0
+     to i1, and columns only from j0 to j1.
+
+void Set_Part(const Table &T, long i0, long j0);
+     Put Table T on our Table, starting from entry (i0,j0). 
+     Rows i0 to i0+T.N1-1 and columns j0 to j0+T.N2-1 will be modified.
+
+void Rand(long a, long b);
+     Set all entries to random integers uniformly distributed in [a,b].
+
+
+- Methods for retrieving information from Table
+
+bool Is_Zero() const;
+     Returns true if the whole Table is zero.
+
+long Elem(long i, long j) const;
+     Returns the (i,j) entry of the Table.
+
+List Col(long i) const;
+List Row(long i) const;
+     Returns the i-th row/column of the Table.
+
+void Col(List &L, long i) const;
+void Row(List &L, long i) const;
+     Returns the i-th row/column of the Table in List L. It is
+     slightly more efficient.
+
+List Diag() const;
+     Returns the diagonal of the Table.
+
+long Max() const;
+long Min() const;
+     Returns the maximal/minimal entry of the Table.
+  
+long Max(long& i, long& j) const;
+long Min(long& i, long& j) const;
+     Returns the maximal/minimal entry of the Table, and in (i,j) its
+     coordinates in the Table.
+
+
+- Table input/output methods
+
+void Write() const;
+     Write List to stdout.
+
+bool Save_Binary(FILE* f) const;
+     Append List to an open binary file, do
+     not close it afterwards.
+
+bool Save_Binary(const char* filename) const;
+     Open file filename as binary, save List, close file.
+
+bool Load_Binary(FILE *f);
+     Load List from an open binary file, do
+     not close it afterwards.
+
+bool Load_Binary(const char* filename);
+     Open file filename as binary, load List, close file.
+
+bool Load(const char* filename);
+     Open file filename as text, load List, close file.
+
+bool Load(FILE* f);
+     Load contents from an open text file, do not close it.
+
+bool Save(const char* filename) const;
+     Open file filename as text, save List, close file.
+
+bool Save(FILE* f) const;
+     Append List contents to open text file f, do not close file.
+
+
+- Overloaded Table operators
+
+long  operator() (long i, long j) const;
+long& operator() (long i, long j);
+      Access to Table entries. T(5,3)=10; long p=T(5,3);
+
+Table& operator=(const Table& L);
+      Table assignment. T=T2;      
+
+void operator+=(const Table& T);
+void operator-=(const Table& T);
+      Table addition and substraction-assignment. T+=T2;
+
+void operator+=(long K);
+void operator-=(long K);
+void operator*=(long K);
+void operator/=(long K);
+      Add / substract / multiply / divide by a constant to all
+      entries. T+=2; T/=3;  
+
+Table operator+(const Table &T1, const Table &T2);
+Table operator-(const Table &T1, const Table &T2);
+      Table addition / substraction, T=T1+T2;
+
+Table operator+(const Table &T, long K); 
+Table operator+(long K, const Table &T); 
+Table operator-(const Table &T, long K);
+Table operator-(long K, const Table &L);
+      Add / substract a constant to all entries, T=T1+2; T=10-T1;
+ 
+Table operator-(const Table &L);
+      Change sign to all entries: T=-T2;      
+
+Table operator*(const Table &L, long p);
+Table operator/(const Table &L, long p);
+Table operator*(long p, const Table &L);
+      Multiply / integer-divide all entries by a constant. T=2*T2; T=T2/3;
+
+Hvb introduces new semantics for the two operators & and |.  Operator
+& will always mean "vertical" or "serial" appending, while | will mean
+"horizontal" or "parallel" appending. 
+
+void operator&=(const List& L);
+void operator&=(const Table& T);
+     Append List L or Table T vertically to end of the Table. The
+     new Table will have the same number of columns, but one or more
+     new rows. T&=L; T&=T2;
+
+Table operator&(const Table &L1, const Table &T2);
+Table operator&(const List  &L1, const Table &L2);
+Table operator&(const Table &T1, const List  &L2);
+     Append the objects vertically, i.e.: the final Table will
+     have the same number of columns, but more rows.
+
+void operator|=(const List & L);
+void operator|=(const Table &T);
+     Append List L or Table T horizontally at the end of the Table. The
+     new Table will have the same number of rows, but one or more
+     new columns. T|=L; T|=T2;
+
+Table operator|(const List  &L1, const List  &L2);
+Table operator|(const Table &L1, const Table &T2);
+Table operator|(const List  &L1, const Table &L2);
+Table operator|(const Table &T1, const List  &L2);
+      Append the objects horizontally. The resulting Table will have
+      the same number of rows, but more columns. T=L|T2;
+
+
+==================================================================
+
+
+*** LINEAR ALGEBRA ***
+
+There is a standard in the implementation of linear algebra
+algorithms, the one built into BLAS & LAPACK. Unfortunately, the
+interface is written in Fortran 77, and it is simply terrible. In Hvb
+we have written a useful wrapper on the BLAS and LAPACK functions,
+using the expert drivers. 
+
+The Hvb files "Matrix.h" and "MatrixC.h" contain the headers for the
+real and complex classes of Vector, Matrix, VectorC (complex) and
+MatrixC (complex). They are designed to be both user friendly and
+efficient. 
+
+Many methods are similar to those used in the classes List and
+Matrix. Nonetheless, we will write them out in full here. On the other
+hand, we will only describe the complex classes, VectorC and MatrixC
+summarizing the few differences with their real counterparts.
+
+
+- Vector class
+
+It contains just two pieces of data: its length, N, and a double
+pointer, D, which contains the actual data.
+
+Vector();     
+       Empty creator. Vector V;
+
+Vector(long n);
+       Create a Vector of length n, fill with zeros. Vector V(5);
+	    
+Vector(const Vector &W);
+       Create a Vector copying another one. Vector V(W);
+
+Vector(double *d, long n);
+       Create a Vector from a double pointer and the desired
+       length. 
+
+void Start();
+     Raw initializer, do not use unless you know what you are
+     doing. For advanced users: only use if created from an malloc
+     function.
+
+void Create(long n);
+     Destroy the previous content and create a new Vector with n
+     elements.
+     
+void Load(double *d, long n);
+     Destroy the previous content, create new Vector with n elements,
+     data will point to d.
+
+void Load_Copy(double *d, long n);
+     Destroy the previous content, create new Vector with n elements,
+     copy the data from d.
+
+void Transfer(Vector &W);
+     Destroy the previous content, the Vector will now be a copy of W,
+     but W itself will be destroyed: its data pointer will
+     be stolen from W by our Vector.
+
+void Destroy();
+     Release the memory, free the pointer, set length to zero.
+
+
+- Methods for setting the elements of a Vector
+
+void Zero();
+     Set all elements to zero.
+     
+void Set(double K);
+     Set all elements to K.
+
+void Set_Part(const Vector &W, long p);
+     Set elements from p to be those of W. Elements from p to p+W.N-1
+     are changed.     
+
+bool Normalize();
+     Find its (euclidean) norm and divide by it.
+
+void Part(long p, long q);
+     Cut the Vector, retaining only elements from p to q.     
+
+void Reverse();
+     Reverse the order of the elements.
+
+void Append(double K);
+     Increase the Vector length by one, put K as the last element.     
+ 
+void Append(const Vector &W);
+     Increase the Vector length by the length of W, copy W at the end.
+
+void Insert(double K, long p);
+     Put K at entry p, and shift the rest so no information is lost.
+
+void Insert(const Vector &W, long p);
+     Put Vector W at position p, and shift the rest so no information
+     is lost.
+
+void Remove(long p, long q=0);
+     Remove entries from p to q. If q is not given, only remove p.
+
+void Sqr();
+     Square all elements.
+
+void Abs();
+     Absolute value of all elements.
+
+void Sort(int p=1);
+     Sort Vector in increasing order (if p>0) or decreasing order (p<0).
+
+void Rand(double a,double b);
+     Make all entries random, drawn from a uniform distribution on [a,b]
+
+void Rand_Gaussian(double mu,double sigma);
+     Make all entries random, drawn from a gaussian distribution with
+     average mu and deviation sigma.
+
+
+- Methods for Vector Input/Output
+
+void Write() const;
+     Write Vector to stdout.
+
+void Write_Col() const;
+     Write Vector to stdout, one line for each entry.
+
+bool Save_Binary(FILE *f) const;
+     Append the contents of the Vector to an open binary file, do
+     not close it afterwards.
+
+bool Save_Binary(const char *filename) const;
+     Open file filename as binary, save Vector, close file.
+
+bool Load_Binary(FILE *f);
+     Load the Vector from an open binary file, do not close it afterwards.
+
+bool Load_Binary(const char *filename);
+     Open file filename as binary, load Vector, close file.
+
+bool Load(const char *filename);
+     Open file filename as text, load Vector, close file.
+
+bool Load(FILE *f);
+     Load Vector contents from an open text file, do not close it.
+
+bool Save(const char *filename) const;
+     Open file filename as text, save Vector, close file.
+
+bool Save(FILE *f) const;
+     Append Vector contents to open text file f, do not close file.
+
+
+- Methods for extracting information from a Vector
+
+double Min() const;
+double Max() const;
+       Obtain the minimal/maximal element of the Vector.  
+       
+double Min(long& imin) const;
+double Max(long& imax) const;
+       Obtain the minimal/maximal element of the Vector, and put into
+       imin/imax its position.
+
+double Sum() const;
+double Sum(long p, long q) const;
+       Return the sum of the elements from p to q (included). If no
+       bounds are given, the complete sum.
+
+double Average() const;
+double Deviation() const;
+double Variance() const;
+       Returns the average / deviation / variance.
+
+bool   Is_Zero(double tolerance) const;
+       Find out whether the Vector is Zero up to a given
+       tolerance. Add up the absolute values of elements, and returns
+       true if the total value is lower than tolerance.
+
+double Norm() const;
+       Returns the Euclidean norm of the Vector.
+
+
+- Overloaded Vector operators
+
+C++ allows to overload some common operators which simplify enormously
+the syntax. Throughout this section, V and W are Vectors.
+
+long  operator() (long p) const;
+long& operator() (long p);
+      Access to Vector elements. V(5)=10; long p=V(5);
+
+Vector& operator=(const Vector& L);
+      Vector assignment. V=W;      
+
+void operator+=(const Vector& W);
+void operator-=(const Vector& W);
+      Vector addition-assignment. V+=W; 
+      Vector substraction-assignment. V-=W;
+
+void operator+=(double K);
+void operator-=(double K);
+void operator*=(double K);
+void operator/=(double K);
+      Add / substract / multiply / divide all elements by a
+      constant. V*=3; 
+
+Vector operator+(const Vector& L1, const Vector& L2);
+Vector operator-(const Vector& L1, const Vector& L2);
+      Vector addition / substraction: V=V1+V2;
+
+Vector operator+(const Vector& V, double K); 
+Vector operator+(double K, const Vector& V); 
+Vector operator-(const Vector& V, double K);
+Vector operator-(double K, const Vector &V);
+      Add / substract a constant to all entries: V=V+2.0; 
+ 
+Vector operator-(const Vector &V);
+      Change sign to all elements. V=-W; 
+
+Vector operator*(const Vector& V, double K);
+Vector operator/(const Vector& V, double K);
+Vector operator*(long p, const Vector& V);
+      Multiply / divide all elements by a constant. V=W/3;
+
+Hvb introduces new semantics for the two operators & and |.  Operator
+& will always mean "vertical" or "serial" appending, while | will mean
+"horizontal" or "parallel" appending. 
+
+void operator&=(double K);
+     Append K at the end of the Vector. V&=2;
+
+void operator&=(const Vector &W);
+     Append Vector W at the end of the Vector, V&=W;
+
+Vector operator&(const Vector &V, const Vector &W);
+     Append Vector V and W. Vector Q=V&W;
+
+Vector operator&(double K, const Vector &V);
+     Append value K at the beginning of Vector V. W=2&V;
+
+Vector operator&(const Vector &L, double K);
+     Append value K at the end of Vector V.
+
+
+- Non-member Vector functions
+
+void   Copy(Vector& B, const Vector& A);
+       Copy the contents of Vector A into Vector B.
+
+double Dot(const Vector& A, const Vector& B);
+       Returns dot product of Vectors A and B.
+
+Vector Cross(const Vector& A, const Vector& B);
+       Returns cross product of Vectors A and B. They both must have
+       dimension 3.       
+
+Vector Tens_Prod(const Vector& A, const Vector& B);
+void   Tens_Prod(Vector& V, const Vector& A, const Vector& B);
+       Returns tensor product of Vectors A and B:
+       {A(1)*B(1),A(1)*B(2),A(1)*B(3)...}. The number of elements is
+       A.N*B.N. If used with three arguments, the first will be
+       deleted to contain the result. It is slightly more efficient:
+       Tens_Prod(V,A,B); is the same as V=Tens_Prod(A,B);
+       
+void   Daxpy(Vector& A, const Vector& B, double K);
+       The same as A+=K*B; but more efficient.       
+
+Vector Elem_Mult(const Vector& A, const Vector& B);
+void   Elem_Mult(Vector& W; const Vector& A, const Vector& B);
+       Perform an elementwise multiplication of both Vectors. If used
+       with two entries, return the result. With three entries, the
+       first will contain the result.              
+
+Vector Normalize(const Vector& V);
+       Returns a normalized version of V.
+
+Vector Part(const Vector& V, long p, long q);
+       Returns the part of Vector V, from position p to q.
+
+Vector Part(const Vector& V, const List& L);
+       Returns the part of Vector V given by the values of List L. For
+       example, if L={2,3,6}, then the result will be the Vector
+       {V(2),V(3),V(6)}.
+
+Vector Reverse(const Vector& V);
+       Returns a reversed version of V.
+
+Vector Set_Part(const Vector& V, const Vector& W, long p);
+       Returns a Vector which results of putting W into V, at position p.
+
+Vector Sqr(const Vector& V);
+Vector Abs(const Vector& V);
+       Returns a copy of Vector V, but with all elements squared /
+       absolute valued.
+
+double Norm(const Vector& V);
+double Min(const Vector& V);
+double Max(const Vector& V);
+double Sum(const Vector& V);
+double Average(const Vector& V);
+double Deviation(const Vector& V);
+double Variance(const Vector& V);
+       These functions return the norm, the maximal or minimal value,
+       the sum of all elements, the average, standard deviation or
+       variance of the elements of the Vector.
+
+Vector Range(double x0, double x1, long N);
+       Returns a Vector which contains N elements which are a linear
+       interpolation between x0 and x1, both included. For example,
+       Range(0,1,6) is the same as {0,0.2,0.4,0.6,0.8,1}.
+
+Vector Constant(double x, long N);
+       Returns a Vector of length N, whose elements are all x.
+
+Vector To_Vector(const List& L);
+       Returns a Vector with the same elements as List L, but
+       converted to double.
+
+List   To_List(const Vector& V);
+       Rounds all elements of Vector V, and returns a List with all of
+       them. 
+
+
+- Matrix class
+
+The Matrix class contains three pieces of data: N1 is the number of
+rows, N2 the number of columns, and D is a double pointer which
+contains the contents, arranged as columns.
+
+Matrix();     
+       Empty creator. Matrix M;
+
+Matrix(long n1, long n2=0);
+       Create a Matrix with n1 rows and n2 columns, filled with
+       zeros. Matrix M(5,3); If no n2 is given, then make square matrix.
+	    
+Matrix(const Matrix& M);
+       Create a Matrix copying another one. Matrix M(M2);
+
+Matrix(double* d, long n1, long n2=0);
+       Create a Matrix from a double pointer and the desired
+       dimensions. Again, if no n2 is given, make it square.
+
+void Start();
+     Raw initializer, do not use unless you know what you are
+     doing. For advanced users: only use if created from an malloc
+     function.
+
+void Create(long n1, long n2=0);
+     Destroy the previous content and create a new Matrix with n1 rows
+     and n2 columns. Again, if no n2 is given, make a square Matrix.
+     
+void Load(double* d, long n1, long n2=0);
+     Destroy the previous content, create new Matrix with n1 rows and
+     n2 columns, data will point to d. Again, if no n2 is given, make
+     a square Matrix.
+
+void Load_Copy(double* d, long n1, long n2=0);
+     Destroy the previous content, create new Matrix with n1 rows and
+     n2 columns and copy the data from d. Again, if no n2 is given,
+     make a square Matrix.
+
+void Transfer(Matrix& M);
+     Destroy the previous content, the Matrix will now be a copy of M,
+     but M itself will be destroyed: its data pointer will
+     be stolen from M by our Matrix.
+
+void Destroy();
+     Release the memory, free the pointer, set dimensions to zero.
+
+void Resize(long n1, long n2=0);
+     Resize the Matrix, to have n1 rows and n2 columns. If no n2 is
+     given, make it square. Copy, as far as possible, the old
+     contents. If the new Table is larger, fill up with zeroes.
+
+
+- Methods for setting the elements of a Matrix
+
+void Zero();
+     Set all elements to zero.
+
+void Unit();
+     Set diagonal matrix elements to one, the rest to zero. It also
+     works with rectangular matrices.
+
+void Set(double K);
+     Set all matrix elements to K.
+
+double& Elem(long i, long j);
+double Elem(long i, long j) const;
+     Reference to the (i,j) element of the Matrix.
+
+void Set_Col(const Vector& V, long i);
+void Set_Row(const Vector& V, long i);
+     Set Vector V as i-th column/row of the Matrix.
+
+void Set_Diag(const Vector& V);
+     Set Vector V as the diagonal of the Matrix.
+
+void Append_Col(const Vector& V);
+void Append_Col(const Matrix& M);
+void Append_Row(const Vector& V);
+void Append_Row(const Matrix& M);
+     Append the Vector/Matrix to our Matrix, either as columns or as rows.
+
+void Insert_Col(const Vector& V, long i);
+void Insert_Row(const Vector& V, long i);
+     Insert a column/row to the Matrix, at position i, shifting the
+     rest so no information is lost.
+
+void Remove_Col(long i);
+void Remove_Row(long i);
+     Remove the i-th column/row, and shrink the Matrix size
+     correspondingly. 
+
+void Swap_Cols(long i,long j);
+void Swap_Rows(long i,long j);
+     Swap the i-th and j-th columns/rows.
+
+void Permute_Cols(const List& L);
+void Permute_Rows(const List& L);
+     Permute the columns/rows of the Matrix, according to the
+     permutation given in List L.
+
+void Sort_Cols();
+void Sort_Cols(const Vector& V);
+     Sort the columns of the Matrix according to the elements of
+     Vector V, which are not changed. If no Vector is given, the sort
+     according to the first element.
+
+void T();
+     Transpose.
+
+void Part(long i0, long j0, long i1, long j1);
+     Cut the Table,retaining only the sub-Table from point (i0,j0) to
+     (i1,j1), both included. In other words: retain only rows from i0
+     to i1, and columns only from j0 to j1.
+
+void Add_Part(const Matrix& M, long i, long j);
+     Add to our Matrix the Matrix M, starting from position (i,j).
+
+void Set_Part(const Matrix& M, long i, long j);
+     Set the elements of our Matrix to those of M, starting from
+     position (i,j);
+
+void Sqr();
+     Square all the elements of the Matrix.
+
+void Rand(double a, double b);
+     Set all elements of the Matrix to be random deviates from a
+     uniform distribution in [a,b].
+     
+void Rand_Gaussian(double mu, double sigma);
+     Set all elements of the Matrix to be gaussian deviates with mean
+     mu and deviation sigma.
+
+void Change_Basis(const Matrix& B);
+     Change the basis of the current Matrix by B, assuming that B is
+     an orthogonal matrix. Transform the Matrix M to T(B)*M*B. 
+
+bool Gram_Schmidt();
+     Perform the Gram-Schmidt procedure on the Matrix. Return true if
+     the procedure was OK, or false otherwise. 
+
+bool Invert();
+     Transform the Matrix to its inverse. Returns true if the
+     algorithm succeeded.
+
+bool LU_Decomp(int* I); 
+     Perform the LU decomposition, Matrix = P*L*U, where P is a (row)
+     permutation matrix, L is lower triangular with unit diagonal
+     elements and U is upper triangular. The Matrix is transformed so
+     that its lower triangle and its upper triangle correspond to the
+     factors. The row permutation is stored in I. It uses the dgetrf
+     LAPACK function. 
+
+
+- Methods to extract information from a Matrix
+
+bool   Is_Zero(double tolerance) const;
+       Find out whether the Vector is Zero up to a given
+       tolerance. Add up the absolute values of elements, and returns
+       true if the total value is lower than tolerance.
+
+Vector Col(long i) const;
+Vector Row(long i) const;
+Vector Diag() const;
+       Extract the i-th column / row, or the diagonal, into a Vector.
+
+void   Col(Vector& V, long i) const;
+void   Row(Vector& V, long i) const;
+       Put the i-th column/row of the Matrix into Vector V.
+
+double Max() const;
+double Max(long& imax, long& imax) const;
+double Min() const;
+double Min(long& imin, long& imin) const;
+       Find the maximal/minimal element of the Matrix. If two long are
+       given, they will contain its position.
+
+double Elem(const Vector& V, const Vector& W) const;
+       Returns the matrix element <V|M|W>
+
+double Elem(const Matrix& M, long i, long j) const;
+       Returns the matrix element between the i-th and j-th columns of M.
+
+bool   Solve(Vector& B) const;
+bool   Solve(Matrix& B) const;
+       Solve the system M*X=B, where B can be a Vector or a Matrix,
+       and put the result again in B. It returns true if the
+       algorithm succeeded.
+
+double Det() const; 
+double Trace() const; 
+       Returns the determinant or the trace of the Matrix.
+       
+void   Diagonalize(Matrix& Basis, Vector& Eigen) const; 
+       Diagonalize the Matrix, assuming it to be hermitean
+       (symmetric). Put the eigenvectors as columns of Matrix Basis, and the
+       eigenvalues into Vector Eigen. 
+
+void   Spectrum(Vector& Eigen) const;
+       Find the spectrum of the Matrix, and put it into Eigen.
+
+void   Tridiagonalize(Matrix& Basis, Vector& D, Vector& S) const;
+       Find the tri-diagonal transformation of the Matrix. Basis will
+       contain the orthogonal transformation, D the diagonal and S the
+       secondary diagonal.
+
+void   NS_Diagonalize(Matrix& BL, Matrix& BR, Vector& ER, Vector& EI) const; 
+       Diagonalize a non-symmetric Matrix. The left eigenvectors are
+       stored in BL, the right eigenvectors in BR. ER and EI contain
+       the real and imaginary parts of the eigenvalues.
+
+
+- Methods for Matrix Input/Output
+
+void Write() const;
+     Write Matrix to stdout.
+
+bool Save_Binary(FILE* f) const;
+     Append the contents of the Matrix to an open binary file, do
+     not close it afterwards.
+
+bool Save_Binary(const char* filename) const;
+     Open file filename as binary, save Matrix, close file.
+
+bool Load_Binary(FILE* f);
+     Load the Matrix from an open binary file, do not close it afterwards.
+
+bool Load_Binary(const char* filename);
+     Open file filename as binary, load Matrix, close file.
+
+bool Load(const char* filename);
+     Open file filename as text, load Matrix, close file.
+
+bool Load(FILE* f);
+     Load Matrix contents from an open text file, do not close it.
+
+bool Save(const char* filename) const;
+bool Save(const char* filename, const char* comment) const;
+     Open file filename as text, save comment, with "#", save Matrix,
+     close file. 
+
+bool Save(FILE* f) const;
+bool Save(FILE* f, const char* comment) const;
+     Append Matrix contents to open text file f, preceded by comment
+     with "#", do not close file.
+
+
+- Overloaded Matrix operators
+
+long  operator() (long i, long j) const;
+long& operator() (long i, long j);
+      Access to Matrix entries. M(5,3)=10; double K=M(5,3);
+
+Matrix& operator=(const Matrix& M);
+      Matrix assignment. M=M2;      
+
+void operator+=(const Matrix& M);
+void operator-=(const Matrix& M);
+void operator*=(const Matrix& M);
+      Matrix addition, substraction and
+      multiplication-assignment. M+=M2; M*=M2; 
+
+void operator+=(double K);
+void operator-=(double K);
+void operator*=(double K);
+void operator/=(double K);
+      Add / substract / multiply / divide by a constant to all
+      entries. M+=2; M/=3;  
+
+Vector operator*(const Matrix& A, const Vector& V);
+      Matrix-Vector product.
+
+Matrix operator+(const Matrix& M1, const Matrix& M2);
+Matrix operator-(const Matrix& M1, const Matrix& M2);
+Matrix operator*(const Matrix& M1, const Matrix& M2);
+      Matrix addition, substraction and multiplication. M=M1+M2;
+ 
+Matrix operator-(const Matrix& M);
+      Change sign to all entries: M=-M2;      
+
+Matrix operator*(const Matrix& M, double K);
+Matrix operator/(const Matrix& M, double K);
+Matrix operator*(double K, const Matrix& M);
+      Multiply / divide all entries by a constant. M=2*M2; M=M2/3;
+
+Hvb introduces new semantics for the two operators & and |.  Operator
+& will always mean "vertical" or "serial" appending, while | will mean
+"horizontal" or "parallel" appending. 
+
+void operator&=(const Vector& V);
+void operator&=(const Matrix& M);
+     Append Vector V or Matrix M vertically to end of the Matrix. The
+     new Matrix will have the same number of columns, but one or more
+     new rows. M&=V; M&=M2;
+
+Matrix operator&(const Matrix& M1, const Matrix& M2);
+Matrix operator&(const Vector& V1, const Matrix& M2);
+Matrix operator&(const Matrix& T1, const Vector& V2);
+     Append the objects vertically, i.e.: the final Matrix will
+     have the same number of columns, but more rows.
+
+void operator|=(const Vector& V);
+void operator|=(const Matrix& M);
+     Append Vector V or Matrix M horizontally at the end of the Matrix. The
+     new Matrix will have the same number of rows, but one or more
+     new columns. M|=V; M|=M2;
+
+Matrix operator|(const Vector& V1, const Vector& V2);
+Matrix operator|(const Matrix& M1, const Matrix& M2);
+Matrix operator|(const Vector& V1, const Matrix& M2);
+Matrix operator|(const Matrix& M1, const Vector& V2);
+      Append the objects horizontally. The resulting Matrix will have
+      the same number of rows, but more columns. M=V|M2;
+
+
+- External Matrix functions
+
+void   Copy(Matrix& B, const Matrix& A);
+       Copy Matrix A into Matrix B.
+
+Matrix Zero(long n1, long n2=0);
+       Returns a Matrix with n1 rows and n2 columns (if no n2 is
+       given, make it square), all zeros.
+
+Matrix Unit(long n1, long n2=0);
+       Returns a Matrix with n1 rows and n2 columns (if no n2 is
+       given, make it square), with ones in the diagonal and zeros outside.
+
+Matrix Diag(const Vector& E);
+       Return a diagonal Matrix with E as the diagonal.
+
+Matrix Constant(double x, long n1, long n2);
+       Return a constant matrix, all elements equal to x. Notice that
+       two arguments should be given, otherwise it will give a Vector.
+
+void   Write(const Matrix& M);
+       Write Matrix M to stdout.
+
+void   Multiply(Vector& W, const Matrix& M, const Vector& V);
+       Make W=M*V.
+
+void   Multiply(Matrix& R, const Matrix& M1, const Matrix& M2);
+       Make R=M1*M2.
+
+void   Multiply_Add(Matrix& R, const Matrix& M1, const Matrix& M2,
+            double alpha, double beta, bool T1, bool T2);
+       Make R=alpha*M1+beta*M2, with M1 and M2 transposed if T1 or T2
+       are true.
+
+Matrix Tens_Prod(const Matrix& M1, const Matrix& M2);
+void   Tens_Prod(Matrix& R, const Matrix& M1, const Matrix& M2);
+       Compute the tensor product of matrices M1 and M2, and return
+       the result or put it into R.
+
+Matrix Tens_Prod_Unit(const Matrix& M, long n, Side);
+void   Tens_Prod_Unit(Matrix& R, const Matrix& M, long n, Side);
+       Compute the tensor product of M \otimes I(n) or I(n) \otimes M,
+       depending on whether side is right or left.
+
+Matrix Tens_Prod_Diag(const Matrix& M, const Vector& V, Side);
+void   Tens_Prod_Diag(Matrix& R, const Matrix& M, const Vector& V, Side);
+       Compute the tensor product of M \otimes D or D \otimes M,
+       depending on whether side is right or left. D is a diagonal
+       Matrix. 
+
+Matrix Elem_Mult(const Matrix& M1, const Matrix& M2);
+void   Elem_Mult(Matrix &R, const Matrix& M1, const Matrix& M2);
+       Element-wise multiplication. Either return the result or put it
+       into R. 
+
+Matrix Ket_Bra(const Vector& V, const Vector& W);
+void   Ket_Bra(Matrix& R, const Vector& V, const Vector& W);
+       Returns or puts into R the outer product of V and W, |V><W|,
+       the matrix whose (i,j) element is V(i) W(j).
+
+Matrix Projector(const Vector& V);
+       Returns the projector on the subspace spanned by V, |V><V|, V(i)
+       V(j). 
+
+// Sort V and swap columns of M accordingly
+void   Sort(Vector& V, Matrix& M);
+       Sort the elements of V, and swap accordingly the columns of
+       M. Useful, for example, to sort eigenvalues and eigenvectors at
+       the same time.
+
+Matrix Change_Basis(const Matrix& M, const Matrix& B);
+       Returns T(B)*M*B, which is a basis change if B is orthogonal.
+
+Matrix T(const Matrix& M);
+       Transposes Matrix M.
+
+Matrix Part(const Matrix& M, long i0, long j0, long i1, long j1);
+void   Part(Matrix &R, const Matrix& M, long i0, long j0, long i1, long j1);
+       Returns or puts into R the sub-matrix from (i0,j0) to (i1,j1).
+
+Matrix Part(const Matrix& M, const List& L1, const List& L2);
+       Returns the sub-matrix of Matrix M made with the rows in L1 and
+       the columns in L2.
+
+Matrix Invert(const Matrix& M);
+       Returns the inverse of Matrix M.
+
+Vector Solve(const Matrix& A, const Vector& b);
+       Solve the linear system A*X=b.
+
+double Trace(const Matrix& M);
+double Det(const Matrix& M);
+double Norm(const Matrix& M);
+       Returns the Trace / Determinant / Norm (Frobenius) of Matrix M.
+
+Matrix Sqr(const Matrix& M);
+       Returns a Matrix where all elements are squared.
+
+Matrix To_Matrix(const Table& T);
+       Converts a Table to a Matrix by upgrading each long to a double.
+
+Table To_Table(const Matrix& M);
+       Rounds each element of Matrix M and puts it into a Table.
+
+
+- Complex linear algebra
+
+A complex number with double components is defined by the type
+cmplx. The imaginary unit is defined as M_I. All functions (sin, exp,
+log...) work properly with cmplx. The other standard functions are
+real, imag, conj, abs and norm (squared modulus).
+
+The corresponding classes are VectorC and MatrixC, which are
+equivalent to Vector and Matrix with complex values. They are defined
+in "MatrixC.h". 
+
+Class VectorC contains a few more methods:
+
+void    Re();
+void    Im();
+void    Abs();
+void    Conj();
+void    Sqr();
+        As methods, they transform a VectorC into their real part,
+        imaginary part, absolute value, conjugate and squared modulus.
+
+Vector  Re(const VectorC& V);
+Vector  Im(const VectorC& V);
+Vector  Abs(const VectorC& V);
+VectorC Conj(const VectorC& V);
+Vector  Sqr(const VectorC& V);
+        As functions, they convert a VectorC into a Vector, except for
+        Conj, which gets another VectorC.
+
+void    Zaxpy(VectorC &R, const VectorC &V, cmplx alpha);
+	R+=alpha*V;
+
+VectorC Complex(const Vector& V);
+VectorC Complex(const Vector& Re, const VectorC& Im);
+	Build a VectorC, either only from the real part, or from the
+	real and imaginary parts.
+
+Class MatrixC, besides all those, also has a few extra methods:
+
+void   Herm();
+       As a method, get the hermitean conjugate.
+
+void   SVD(MatrixC &BL, MatrixC &BR, Vector &Sigma) const;
+       Singular value decomposition of the current MatrixC, with left
+       basis BL, right basis BR, and singular values Sigma.
+
+As external functions:
+
+MatrixC Unit_C(long n1,long n2=0);
+MatrixC Zero_C(long n1,long n2=0);
+	The same as their Matrix counterparts Unit and Zero, but
+	ensuring that they return a MatrixC.
+
+MatrixC Diag_C(const Vector &V);
+	Build a MatrixC with diagonal elements given in the real
+	Vector V.
+
+
+=====================================================================
+
+
+
+*** OPTIMIZATION ***
+
+Header file "Optimize.h" contains the headers for some functions which
+help optimize (minimize) multi-dimensional functions. 
+
+The strategy is always of the same kind. The target function must be
+defined taking as arguments a Vector and a void pointer, and returning
+a double. The void pointer is set in order to pass any kind of extra
+argument to the function.
+
+Let us provide an example of a simple complete code:
+
+#include"Optimize.h"
+
+double Target(const Vector& X, void *param)
+{
+	Vector P=(Vector*)param;
+	return Sqr(X(1)-P(1))+Sqr(X(2)-P(2));
+}
+
+int main()
+{
+	Vector P(2);
+	P(1)=2.0; P(2)=5.0;
+
+	Vector X(2);
+	Func_VR F(Target,&P);
+	double minimum = CG_Optimize(X,F,1e-4);
+	printf("Minimum: %g\n",minimum);
+	X.Write();
+}
+
+The target function is a paraboloid with vertex on the point
+(P(1),P(2)). Its minimum is, of course, passed through the void
+pointer p, which is converted into a Vector pointer and read. In the
+main function, we declare the Vector P, and Vector X, which will
+contain initially the seed for the optimizer, and at the end will
+contain the minimizing Vector. This value, along with the target
+function, the parameters and the tolerance (1e-4) is passed to the
+optimizer, which is CG_Optimize (conjugated gradients).
+
+There are two Function types defined, which contain the function and
+the parameters.
+
+Func_RR
+	Real to real function, with parameters. Contains two fields:
+	Func, and void* p.
+
+Func_VR 
+	Vector to real function, with parameters. Contains the same
+	two field: Func and a void* p.
+
+The minimizer functions are:
+
+double SD_Optimize(Vector &X, Func_VR &F, double tol);
+       Steepest descent optimizer, in two flavors: either using a
+       Func_VR or a function pointer and its parameters. It is the
+       simplest greedy optimizer, following always the (opposite)
+       gradient. 
+
+double CG_Optimize(Vector &X, Func_VR &F, double tol);
+       Conjugated gradients optimizer. Very efficient greedy
+       optimizer.
+
+double Powell_Optimize(Vector &P, Func_VR &F, double tol);
+       Powell optimizer. Its advantage is that it does not use the
+       gradient.
+
+double Annealing_Optimize(Vector &X, Func_VR &F, Annealing_Params *A);
+       Non-greedy optimizer, following a simulated annealing
+       procedure. The Annealing_Params pointer can be NULL. Otherwise,
+       it will contain the following parameters:
+
+double Beta_Min;
+       Minimal value of beta, starting inverse temperature.
+double Beta_Max;
+       Final value of beta, ending inverse temperature.
+double R_Beta;
+       Ratio by which beta increases at every iteration.
+long   N_Times;
+       Number of equilibration movements at each iteration.
+double A0;
+       Initial amplitude of the random movements.
+
+All optimizer functions have a second prototype, in which the Func_VR
+is substituted by the function pointer and the parameters pointer.
+
+
+===================================================================
+
+
+
+*** CALCULUS ***
+
+The header file "Calculus.h" contains functions for integration,
+interpolation and solving ordinary differential
+equations. Optimization, being an specialized topic, is in
+"Optimize.h". Note that Func_RR is explained in the previous section.
+
+
+- Integration
+
+The function to be integrated should be provided in the form of
+Func_RR. 
+
+double Trapezoid_Sum(Func_RR &F, double a, double b, long n);
+       This is a rather crude integrator, and should not be used. It
+       divides the interval [a,b] into n rectangles, amd computes the
+       trapezoidal sum.               
+
+double Integrate(Func_RR &F, double a, double b, double tol);
+       This integrator is much more sophisticated. It calls
+       Trapezoid_Sum with an increasing number of rectangles until the
+       desired convergence is attained. Subsequent calls to the
+       function are made in a smart way, so that the error in each
+       case is order 1/n^4.
+
+double Integrate_To_Inf(Func_RR &F, double a, double tol1, double tol2);
+       Improper integrals, compute the integral of F from a to
+       infinity. The tolerance tol1 is related to the evaluation of
+       each finite integral, and tol2 to the convergence towards
+       infinity. 
+      
+An example, let us define the function with parameters
+
+double my_function(double x, void *P)
+{      
+       double* K=(double*)P;
+       return (*K)*sin(x);
+}
+
+int main()
+{
+      double K=5.0;
+      Func_RR F(my_function,&K);
+      double I=Integrate(F,0.0,M_PI,1e-6);
+}
+
+
+- Ordinary Differential Equations
+
+Let us define our set of differential equations as 
+
+\dot x_i = F(x_1,\cdots,x_N,t,P)
+
+where P are some parameters. In order to solve a differential
+equation, we need to define a special kind of function, Func_ODE,
+which is any function which has this signature: void F(Vector &R,
+const Vector &X, void *P, double t); The result is put into R, which
+must be allocated beforehand for efficiency.
+
+An example of Func_ODE is
+
+void my_function(Vector &R, const Vector &X, void *P, double t)
+{
+     R(1)=-X(2);
+     R(2)=X(1);
+}
+
+where P and t were not used. In order to find the numerical solution,
+we create an ODE_Solver:
+
+Vector X(2); X(1)=1.0; X(2)=0.0; // initial condition
+double dt=1e-4;
+double t=0.0, tmax=M_PI;
+ODE_Solver O(my_function,X,NULL,t,dt);
+while (O.t<tmax)
+      O.Runge_Kutta();
+O.X.Write();
+
+
+- Function interpolation
+
+Very often we want to treat a function defined by a set of points as a
+continuous function. We can use these functions to help:
+
+long    Search(double x, const Vector &X);
+        Assuming that X is sorted in increasing order, finds the
+        higest index i such that x>X(i).
+
+double  Interpolate(double x, const Matrix &M)
+        Assuming M=X|Y, with X a sorted Vector of abscissas and Y its
+        set of ordinates, then the function returns a linear
+        interpolation estimate of F(x). If x<X(1), then it returns
+        Y(1). If x>X(N), then it returns Y(N).
+
+double  Interpolate(double x, void *M)
+	Interpolation function in Func_RR form, so as to use in
+	integration, etc.
+
+
+===================================================================
+
+
+*** GRAPH STRUCTURES ***
+
+A graph is a set of sites connected by links. The header file
+"Graph.h" contains the class Graph, which represents a directed or
+non-directed simple graph (no more than one link between two
+sites). By default, a graph will be non-directed.
+
+The class Graph contains the following data: N is the number of sites,
+Nl is the number of links and the boolean directed tells us whether it
+is directed or not. Two internal structures, which need not be
+accessed by the user, have the actual connection information. V is a
+set of Lists, such that V[p] is the List of neighbors of site p. I1
+and I2 are two lists, such that link k connects I1(k) to I2(k). 
+
+
+- Methods of the Graph class
+
+Graph();
+     Void initializer.
+
+Graph(long N);
+     Initialize empty graph with N sites.
+
+Graph(const Graph &G);
+     Initialize copying from Graph G.
+
+void Start();
+     Raw initializer. Do not use unless you know what you are
+     doing. For advanced users: use if you are creating a set of
+     Graphs with malloc.
+
+void Create(long n);
+     Destroy the contents of the Graph and create it again, with n
+     sites.
+
+void Destroy();
+     Release the memory, make N=Nl=0.
+
+void Set_Directed();
+     Assert that the Graph is directed, and update the link indices.
+
+void Set_Undirected();
+     Assert that the Graph is undirected, and update the link index.
+
+long Add_Site(long p=0); 
+     Add a new site to the Graph, linked to site p. If p is absent, unlinked.
+
+void Add_Sites(long n); 
+     Add n new sites, unlinked.
+
+bool Add_Link(long i, long j);
+     Add a link between sites i and j.
+
+void Remove_Site(long p); 
+     Remove site p.
+
+void Remove_Sites(const List &L);
+     Remove all sites in List L.
+
+void Remove_Link(long i, long j);
+     Remove the link between sites i and j. 
+
+void Remove_Link(long il);
+     Remove the link number il. The link index must be updated with
+     Update_Index. 
+
+void Clear(); 
+     Delete all links, keep sites.
+
+void Update_Index();
+     Updates the link index. Under normal conditions, the user never
+     needs to call this function.
+
+long Degree(long p) const; 
+     Returns the number of neighbors of site p.
+
+long Neighbour(long p, long k) const; 
+     Returns the k-th neighbor of site p.
+
+List Neighbours(long p) const;
+     Returns the List of neighbors of site p.
+
+bool Is_Link(long i, long j) const;
+     Returns true if there is a link between sites i and j.
+
+long Link_Index(long i, long j) const;
+     Returns the index number of the link between i and j, or zero if
+     there is none. The link index must be updated with Update_Index.
+
+void Link_Sites(long& s1, long& s2, long il) const;
+     Returns the sites which are connected by link il, into s1 and
+     s2. The link index must be updated with Update_Index.
+
+Matrix Adjacency_Matrix() const;
+       Returns the adjacency matrix of the Graph, i.e. the Matrix whose
+       (i,j) element is 1 only if there is a link between sites i and j.
+
+List   Connected_Component(long p) const;
+       Returns the list of sites which can be accessed from p through
+       graph link.s
+
+List   Find_Path(long s1, long s2) const;
+       Find the minimal path between sites s1 and s2, using Dijkstra's
+       algorithm.
+
+List   Find_Path(const Vector &V, long s1, long s2) const;
+       Find the minimal path between sites s1 and s2, using Dijkstra's
+       algorithm, assuming that the length of link il is given by V(il).
+
+long   Distance(long s1, long s2) const;
+       Find the minimal distance between sites s1 and s2, using
+       Dijkstra's algorithm.
+
+Graph  Minimum_Spanning_Tree() const;
+       Find the minimum spanning tree from the Graph, i.e., prune the
+       minimum set of links so that there are no loops. It uses Prim's
+       algorithm.
+
+Graph& operator=(const Graph& G);
+       Assignment operators, make Graph equal to G.
+
+long   operator()(long p) const;
+       Overloaded () operator, returns the degree of site p. 
+
+long&  operator()(long p, long k);
+long   operator()(long p, long k) const;
+       Overloaded () operator with two arguments, returns the k-th
+       neighbor of site p.
+
+void   Write() const;
+       Writes the Graph structure to stdout.
+
+bool   Save(const char* filename) const;
+bool   Load(const char* filename);
+       Save / Load the Graph structure to / from a file.
+  
+     
+- External functions
+
+void  Copy(Graph& G, const Graph& G2);
+      Destroy the contents of G, and copy those of G2 into G.
+
+Graph Linear_Graph(long N);
+      Returns a linear graph with N sites, and open boundaries.
+
+Graph Linear_Graph_PBC(long N);
+      Returns a linear graph with N sites and periodic boundaries.
+
+Graph Square_Graph(long lx, long ly);
+      Returns a square graph with dimensions lx and ly.
+
+Graph Square_Graph_PBC(long lx, long ly);
+      Returns a square graph with dimensions lx and ly and periodic
+      boundaries.
+
+Graph Complete_Graph(long N);
+      Returns a complete graph of N sites.
+
+Graph Matrix_2_Graph(const Matrix& M);
+      Converts a Matrix to a Graph: all non-zero off-diagonal elements
+      are converted to links.
+
+Graph Points_2_Graph(const Matrix& M, double dcutoff);
+      M represents a set of points in its columns. Build the graph in
+      which two sites are connected by a link if their euclidean
+      distance is lower than dcutoff.
+
+Graph Remove_Site(const Graph& G, long p);
+      Returns the Graph resulting from removing site p from G.
+
+Graph Remove_Sites(const Graph& G, const List& L);
+      Returns the Graph resulting from removing all sites in L from G.
+
+
+=====================================================================
+
+*** PARSING TEXT ***
+
+In order to parse files, and read their contents in a comfortable way,
+using strategies similar to awk. The header file "Text.h" contains the
+class Text, which represents a string of characters. Its fields are N,
+the character length, and a char pointer, the actual data.
+
+
+- Methods of the class Text
+
+Text();
+       Empty initializer.
+
+Text(const char* S);
+       Initialize from a string S, with length up to the first '\0'
+       value.
+
+Text(const Text& T);
+       Initialize from another Text.
+
+void   Start();
+       Raw initializer.
+
+void   Create(const char* S);
+       Create copying from a string S, with length up to the first '\0'. Typical
+       use, Text S; S.Create("Hallo"); 
+
+void   Load(char* S);
+       Create using S as char pointer.     
+
+void   Destroy();
+       Release the memory.
+
+long   Get_Line(FILE* f); 
+       Read a line from file f, the return value is the number of read
+       characters. If return is 0, we have reached end of file. If
+       return is -1, there was an error.
+
+void   Write();
+       Write to stdout.
+
+void   Append(const char* S);
+       Append to the Text the contents of S.
+
+void   Append(const char* S, long n);
+       Append n characters from S.
+
+void   Append(const Text& T);
+       Append Text T.
+
+void   Append(const char q);
+       Append char q to Text.
+
+void   Append_F(const char*, long i);
+       Append a long with a format given in the string
+       constant. Example, T.Append_F("%ld",i);
+
+void   Append_F(const char*, double f);
+       Append a double with a format given in the string constant.
+
+Text&  operator=(const Text& T);
+       Assignment operator.
+
+Text&  operator=(const char *);
+       Assignment operator from a string constant.
+
+void   Strip_Blanks();
+       Strip the blanks at the beginning and end of the Text.
+
+bool   Is_Here(const char *S);
+bool   Is_Here(const Text &S);
+       Returns true if the Text starts with S.
+
+bool   Is_There(const char *S);
+bool   Is_There(const Text &S);
+       Returns true if the Text contains S anywhere.
+
+Text   Token(char q0, char q1, long n) const;
+       Returns a token, the n-th sub-text limited between q0 and
+       q1. More precisely, finds the n-th occurrence of q0 and then
+       captures the text between that point and the first appearance
+       of q1. If any of q0 / q1 is \0, then it will denote the
+       beginning/end of the Text.
+
+Text   Part(long i0, long i1) const;
+       Returns the sub-string from position i0 to i1.
+
+long   Get_Int(char q0, char q1, long n) const;
+       Returns Token(q0,q1,n) converted to long.
+
+double Get_Real(char q0, char q1, long n) const;
+       Returns Token(q0,q1,n) converted to double.
+
+long   Count(char q) const;
+       Counts the number of appearances of q in Text.
+
+long   Find_Nth(char q, long n) const;
+       Finds the n-th appearance of q in the Text.
+
+long   To_Int() const;
+double To_Real() const;
+       Converts the full Text to long or double.
+     
+void   To_LowerCase(); 
+void   To_UpperCase();
+       Converts all the Text to lowercase or uppercase.
+
+Text   Get_Field(long n) const;
+       Obtain the n-th field, i.e. limited by an arbitrary number of
+       blanks of tabs. So, the n-th field in the sense of awk.
+
+double Get_Real(long n) const;
+long   Get_Int(long n) const;
+       Get the n-th field, and convert to double or long.
+
+long   Count_Fields() const;
+       Count the number of fields in the Text.
+
+Vector To_Vector() const;
+       Convert the full Text to a Vector.
+
+List   To_List() const;
+       Convert the full Text to a List.
+
+
+- External Text functions
+
+void   Copy(Text& S, const Text& S1);
+void   Copy(Text& S, const char* z);
+void   Copy(Text& S, const char* z, long n);
+       Copy function, either from another Text, from a char pointer
+       (up to first \0) or from a char pointer, copying n characters.     
+
+ostream& operator<< (ostream &out, Text &S);
+       Overloaded << operator, passes a Text to an ostream.
+
+bool  operator==(const Text &S1, const Text &S2);
+      Overloaded comparison operator, returns true if Text S1 and S2
+      are equal.
+
+bool Is_Space(const char q)
+     Returns true if q is either a blank, tabulator or newline.
+
+
+==================================================================
+
+
+*** X-WINDOW GRAPHICS ***
+
+The Hvb library supports the creation of real-time graphics, through
+the X-Window system, which is present in all UNIX-like systems. In
+case of need, it can be removed. The header file is "EX.h" (its old
+name was Easy X), and it does not contain any classes. It contains a
+few defined types, though.
+
+void    EX_Start();
+	Open the connection to the X server. It creates the EX_Info
+	global object, which specifies the display, screen, root
+	window, graphics context, visual depth, colormap and
+	font. The user does not need to know about them.
+
+EX_Window* EX_Start(int x, int y, int width, int height);
+	Open the connection to the X server and create a simple
+	window, of given width and height, with its upper left
+	corner on coordinates (x,y) of the root window. It returns
+	a pointer to an EX_Window. Typically, we will only work
+	with a single window and this will not be needed. But you
+	can work with more than one. Then, remember that all
+	functions refer to the current window, globally defined as
+	EX_CW. 
+
+EX_Window* EX_Create_Window(int x, int y, int width, int height);
+	It creates a window, at position (x,y) with width and
+	height. In order to draw on them, set the current window to
+	it, assigning EX_CW.
+
+void    EX_Get_Window_Size(long &width, long &height);
+	Find the dimensions of the current window.
+
+void    EX_Set_Name(const char *name);
+	Set the name of the window.
+
+void    EX_Destroy(EX_Window*);
+	Destroy a window.
+
+void    EX_Close();
+	Close the connection to the X server.
+
+void    EX_Enable_Buffer();
+	It enables the buffer, which is a structure which helps
+	avoid flickering on the screen. The idea is that all
+	drawing orders are performed on a secondary pixmap, or
+	buffer, and only flushed to the window only when an
+	EX_Flush() function is invoked. 
+
+void    EX_Disable_Buffer();
+	Disables the buffer.
+
+void    EX_Flush();
+	Flush the buffer, if it exists, on the window.
+
+
+- Drawing functions
+
+void    EX_Pixel(int x, int y);
+	Draw a pixel on the current window, or the buffer if it has
+	been enabled.
+
+void 	EX_Line(int x0, int y0, int x, int y);
+	Draw a line on the current window.
+
+void 	EX_Arc(int x0, int y0, int r, double a0, double a1);
+	Draw an arc on the current window, with center (x0,y0) and
+	radius r, between angles a0 and a1, given in degrees.
+
+void 	EX_Fill_Arc(int x0, int y0, int r, double a0, double a1);
+	Fill an arc on the current window, with center (x0,y0) and
+	radius r, between angles a0 and a1, given in degrees.	  
+
+void 	EX_Circle(int x, int y, int R);
+	Draw a circle on the current window, with center (x,y) and
+	radius R.
+
+void 	EX_Fill_Circle(int x, int y, int R);
+	Fill a circle on the current window, with center (x,h) and
+	radius R.
+
+void 	EX_Rectangle(int x0, int y0, int w, int h);
+	Draw a rectangle with upper-left point (x0,y0), width w and
+	height h.
+
+void 	EX_Fill_Rectangle(int x0, int y0, int w, int h);
+	Fill a rectangle with upper-left point (x0,y0), width w and
+	height h.
+
+void 	EX_Polygon(const List &X, const List &Y);
+	Draw a polygon with coordinates given by the Lists X and Y.
+
+void 	EX_Fill_Polygon(const List &X, const List &Y);
+	Fill a polygon with coordinates given by the Lists X and Y.
+
+void 	EX_Clear();
+	Clear the window.
+
+void 	EX_Set_Line_Width(int lw);
+	Set the linewidth to lw.
+
+void    EX_Prepare_Font(const char* font_id);
+        Define the font to be used. Font specifications in the
+	X-Window system are complex. There is a pre-defined
+	EX_Default_Font in use, so do not change it unless you know
+	what you are doing.
+
+void    EX_Draw_String(int x, int y, const char *S);
+	Draw a text string at position (x,y).
+
+long    EX_Text_Width(const char *S, long n);
+	Find out how many pixels would string S occupy. If n is
+	provided, consider the first n characters. If n is zero, then
+	take full string.
+
+long    EX_Text_Ascent();
+long    EX_Text_Descent();
+	Find out the ascent and descent of the current font, i.e., the
+	number of pixels which are required above and below the
+	baseline in order to print the string.
+
+void    EX_Color(const char* colorname);
+void    EX_Color(double R, double G, double B);
+	Specify and set a color, either by name or by RGB coordinates
+	(numbers in [0,1]). It is not optimal, since it allocates
+	colors again and again, and it takes time. 
+
+void    EX_Set_Color(long colornum);
+	Set a color to a given palette index. 
+
+long    EX_Alloc_Named_Color(const char *colorname);
+long    EX_Alloc_RGB_Color(double R, double G, double B);
+	Allocate a color, given either by name or by RGB coordinates
+	(numbers in [0,1]), and give an index to it. This is the
+	optimal way to work.
+
+List EX_Palette(double R1, double G1, double B1,
+		double R2, double G2, double B2, long Ncolors);
+        Allocate Ncolors colors, interpolating from RGB coordinates
+        (R1,G1,B1) to (R2,G2,B2), given as numbers in [0,1]. 
+
+void EX_Mode(int mode);
+void EX_Mode_Or();
+void EX_Mode_Copy(); 
+        When a pixel is going to be drawn, it combines with the
+        "previous" pixels on the screen in different "modes". Mode
+	copy is just "forget" the previous one, mode or means perform
+	an OR function between the color bits. Other modes are given
+	in the Xlib manual.
+
+
+- Keyboard and mouse interaction
+
+int 	EX_Key_Pressed();
+	Returns true when a key is being pressed.
+
+char 	EX_Read_Key();
+	Waits until a key is pressed, and returns the character that
+	would be printed. Can be used in combination with
+	EX_Key_Pressed(). 
+
+int     EX_Pointer();
+	Returns true if there is any pointer event (mouse press, mouse
+	release, or mouse motion).
+
+int     EX_Pointer_Pressed();
+	Returns true if there is a pointer press event only.
+
+EX_Pointer_State EX_Read_Pointer();
+        If we know a pointer event has been found, we can read the
+        pointer state into that struct. It contains three fields: x, y
+        (position of the pointer) and button (which button is pressed,
+        or zero if there was a release event).   
+		 
+
+==============================================================
+
+
+*** IMAGE PROCESSING ***
+
+Header file "Image.h" contains the function prototypes needed to do
+image reading, capturing and basic processing. It is built upon the
+Imlib2 library. It works with all kinds of bitmap formats: jpg, png,
+etc. All "Image.h" functions start with "EI".
+
+
+void EI_Start();
+     It is important to start the image server.
+
+EI_Image EI_Load(const char* name); 
+     Loads an image from an image file, and sets the current
+     image. All operations will be performed on this current
+     image. The type EI_Image is just the same as the Imlib_Image. 
+
+int EI_Get_Width();
+int EI_Get_Height();
+     Returns the width and height of the current image.
+
+void EI_Render(int x, int y);
+     Render the current image on the current window (EX_CW), at
+     position (x,y).
+
+void EI_Render_Scaled(int x, int y, int w, int h);
+     Render a scaled version of the current image on the current
+     window (EX_CW), at position (x,y). The rendered image will have
+     width w and height h.
+
+void EI_Free();
+     Release the memory taken by the current image and the rest of the
+     EI system.
+
+EI_Image EI_Capture(int x, int y, int w, int h); 
+     Capture a rectangle of the current window (EX_CW) into the
+     current image. 
+
+void EI_Save(const char* name);
+     Save the current image to a file. The file format will be taken
+     from the name extension: jpg, png, etc.
+   
+void EI_To_Matrices(Matrix &R, Matrix &G, Matrix &B, Matrix &A);
+     In order to do image processing, convert the current image to
+     four real matrices, R, G, B and A, containing each of the four
+     channels (A is for alpha). All legal entry values are in [0,1].
+
+void EI_From_Matrices(const Matrix &R, const Matrix &G, const Matrix &B,
+		      const Matrix &A);
+     Convert the four real matrices, R, G, B and A to the current image.
+
+
+====================================================================
+
+
+*** POSTSCRIPT GRAPHICS ***
+
+The header file "Postscript.h" contains several functions which make
+it easy to create PostScript graphics of good quality, enough for
+publication. It can be used for complex diagrams or data presentation
+which can not be achieved easily with gnuplot, Tikz or pstricks.
+
+
+FILE* PS_Open(const char* name, int x0, int y0, int x1, int y1);
+     Open a file and add a basic header. The Postscript figure will
+     be framed by the rectangle of coordinates (x0,y0) and (x1,y1),
+     which are called the "bounding box". 
+
+FILE* PS_Current_File;
+     This file pointer will point to the current Postscript file in
+     use. Normally, a single Postscript file will be in use, and all
+     commands will refer to it.
+
+void PS_Close(FILE *psfile);
+     Close the Postscript file.
+
+void PS_Line(double x0, double y0, double x1, double y1);
+void PS_Line(FILE *psfile, double x0, double y0, double x1, double y1);
+     Draw a line, from (x0,y0) to (x1,y1). If no file is specified,
+     then draw on PS_Current_File.
+
+void PS_Circle(double cx0, double cy0, double R);
+void PS_Circle(FILE *psfile, double cx0, double cy0, double R);
+     Draw a circle with center (cx0,cy0) and radius R.
+
+void PS_Fill_Circle(double cx0, double cy0, double R);     
+void PS_Fill_Circle(FILE *psfile, double cx0, double cy0, double R);
+     Draw a filled circle, with the current color, with center
+     (cx0,cy0) and radius R.
+
+void PS_Rectangle(double x0, double y0, double wx, double wy);
+void PS_Rectangle(FILE *psfile, double x0, double y0, double wx, double wy);
+     Draw a rectangle, with lower-left corner (x0,y0) and dimensions
+     wx and wy.
+
+void PS_Fill_Rectangle(FILE *psfile, double x0, double y0, double wx, double wy);
+void PS_Fill_Rectangle(double x0, double y0, double wx, double wy);
+     Fill a rectangle, with the current color, with lower-left corner
+     (x0,y0) and dimensions wx and wy.
+
+void PS_Polygon(const Vector &X, const Vector &Y);
+void PS_Polygon(FILE *psfile, const Vector &X, const Vector &Y);
+     Draw a polygon from the coordinates Vectors, X and Y.
+
+void PS_Fill_Polygon(FILE *psfile, const Vector &X, const Vector &Y);
+void PS_Fill_Polygon(const Vector &X, const Vector &Y);
+     Fill a polygon from the coordinates Vectors X and Y.
+
+void PS_Dashed_Line();
+void PS_Dashed_Line(FILE *psfile);
+     Set dashed line.
+
+void PS_Normal_Line();
+void PS_Normal_Line(FILE *psfile);
+     Set normal line.
+
+void PS_Set_Line_Width(double f);
+void PS_Set_Line_Width(FILE *psfile, double f);
+     Set the line width.
+
+void PS_Color(double red, double green, double blue);
+void PS_Color(FILE *psfile, double red, double green, double blue);
+     Set the current color, in RGB coordinates, each one in the range [0,1].
+
+void PS_Arc(double cx0, double cy0, double R, double a0, double a1);
+void PS_Arc(FILE *psfile, double cx0, double cy0, double R,
+	    double a0, double a1);
+     Draw an arc with center (cx0,cy0) and radius R, from angle a0 to
+     a1, given in radians.
+
+void PS_Prepare_Font(const char *fontname, int size);
+void PS_Prepare_Font(FILE *psfile, const char *fontname, int size);
+     Prepares a font given by the name and its size in points. For
+     example, PS_Prepare_Font("Helvetica",12); or
+     PS_Prepare_Font("Times-Roman",15); There is a char*
+     PS_Default_Font which is set to "Times-Roman" in principle.
+
+void PS_Text(double x0, double y0, const char *S);
+void PS_Text(FILE *psfile, double x0, double y0, const char *S);
+     Show the text given in string S at the point (x0,y0).
+
+void PS_Translate(double x, double y);
+void PS_Translate(FILE *psfile, double x, double y);
+     Translate the coordinate frame to the point (x,y), which will be
+     the new (0,0).
+
+
