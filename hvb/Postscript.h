@@ -21,24 +21,20 @@ void PS_Line(double x0, double y0, double x1, double y1);
 void PS_Circle(FILE *psfile, double cx0, double cy0, double R);
 void PS_Circle(double cx0, double cy0, double R);
      
-void PS_Fill_Circle(FILE *psfile, double cx0, double cy0, double R, 
-		    double filling);
-void PS_Fill_Circle(double cx0, double cy0, double R, double filling);
+void PS_Fill_Circle(FILE *psfile, double cx0, double cy0, double R);
+void PS_Fill_Circle(double cx0, double cy0, double R);
 
 void PS_Rectangle(FILE *psfile, double x0, double y0, double wx, double wy);
 void PS_Rectangle(double x0, double y0, double wx, double wy);
 
-void PS_Fill_Rectangle(FILE *psfile, double x0, double y0, 
-			double wx, double wy, double filling);
-void PS_Fill_Rectangle(double x0, double y0, 
-		       double wx, double wy, double filling);
+void PS_Fill_Rectangle(FILE *psfile, double x0, double y0, double wx, double wy);
+void PS_Fill_Rectangle(double x0, double y0, double wx, double wy);
 
 void PS_Polygon(FILE *psfile, const Vector &X, const Vector &Y);
 void PS_Polygon(const Vector &X, const Vector &Y);
 
-void PS_Fill_Polygon(FILE *psfile, const Vector &X, const Vector &Y, 
-		     double filling);
-void PS_Fill_Polygon(const Vector &X, const Vector &Y, double filling);
+void PS_Fill_Polygon(FILE *psfile, const Vector &X, const Vector &Y);
+void PS_Fill_Polygon(const Vector &X, const Vector &Y);
 
 void PS_Normal_Line(FILE *psfile);
 void PS_Normal_Line();
@@ -59,10 +55,10 @@ void PS_Arc(FILE *psfile, double cx0, double cy0, double R,
 	    double a0, double a1);
 void PS_Arc(double cx0, double cy0, double R,double a0, double a1);
 
-void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2,
-	      double x3, double y3, double x4, double y4);
-void PS_Curve(double x1, double y1, double x2, double y2,
-	      double x3, double y3, double x4, double y4);
+/* void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2, */
+/* 	      double x3, double y3, double x4, double y4); */
+/* void PS_Curve(double x1, double y1, double x2, double y2, */
+/* 	      double x3, double y3, double x4, double y4); */
 
 void PS_Prepare_Font(FILE *psfile, const char *fontname, int size);
 void PS_Prepare_Font(const char *fontname, int size);

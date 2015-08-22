@@ -621,6 +621,26 @@ Vector operator-(const Vector &A, const Vector &B)
      return R;
 }
 
+Vector operator+(const Vector &V, double K)
+{
+     return V+Constant(K,V.N);
+}
+
+Vector operator+(double K, const Vector &V)
+{
+     return Constant(K,V.N)+V;
+}
+
+Vector operator-(const Vector &V, double K)
+{
+     return V-Constant(K,V.N);
+}
+
+Vector operator-(double K, const Vector &V)
+{
+     return Constant(K,V.N)-V;
+}
+
 Vector operator*(double x, const Vector& V)
 {
      Vector R(V);
@@ -1989,6 +2009,13 @@ Matrix Diag(const Vector &E)
      return R;
 }
 
+Matrix Constant(double x, long n1, long n2)
+{
+     Matrix A(n1,n2);
+     A.Set(x);
+     return A;		  
+}
+
 void Write(const Matrix &M)
 {
      M.Write();
@@ -2080,7 +2107,7 @@ Matrix operator|(const Matrix &M, const Vector &B)
 Matrix operator|(const Vector &B, const Matrix &M)
 {
      Matrix R(M);
-     R.Append_Col(B);
+     R.Insert_Col(B,1);
      return R;
 }
 

@@ -1,8 +1,8 @@
 ////////////////////////////////////////////////////////
-// hvb++ 1.0
+// Hvb
 // Copyleft: Javier Rodríguez Laguna
-// 080725-100418-150125
-// Graph structure, without geometry! Only topology!
+// 080725-100418-150125-150606
+// Graph structure both directed and undirected
 
 #include"Graph.h"
 
@@ -31,8 +31,10 @@ Graph::~Graph()
 void Graph::Start()
 {
      N=0; Nl=0;
-     V=(List*)NULL; I.Start();
-     updated=false;
+     V=(List*)NULL; 
+     I1.Start();
+     I2.Start();
+     directed=false;
 }
 
 void Graph::Create(long n)
@@ -47,10 +49,23 @@ void Graph::Destroy()
      for (long i=1;i<=N;i++)
 	  V[i].Destroy();
      free(V);
-     if (updated) I.Destroy();
+     I1.Destroy();
+     I2.Destroy();
      V=(List*)NULL;
-     updated=false;
+     directed=false;
      N=0; Nl=0;
+}
+
+void Graph::Set_Directed()
+{
+     directed=true;
+     Update_Index();
+}
+
+void Graph::Set_Undirected()
+{
+     directed=false;
+     Update_Index();
 }
 
 // stem is 0 by default
@@ -64,7 +79,7 @@ long Graph::Add_Site(long stem)
    
      V[N].Start();
      if (stem!=0 && stem<=N-1)
-	  Add_Link(N,stem);
+	  Add_Link(stem,N);
      return N;
 }
 
@@ -82,8 +97,9 @@ bool Graph::Add_Link(long s1, long s2)
      if (s1<1 || s1>N || s2<1 || s2>N) return false;
      if (Is_Link(s1,s2)) return false;
      V[s1].Append(s2);
-     V[s2].Append(s1);
-     updated=false;
+     if (!directed) V[s2].Append(s1);
+     I1 &= s1; // append site s1 to the I1 list
+     I2 &= s2;
      Nl++;
      return true;
 }
@@ -102,7 +118,6 @@ void Graph::Remove_Site(long s)
 	  V[i].N=V[i+1].N;
      }
      V=(List*)realloc(V,N*sizeof(List));
-     updated=false;
 }
 
 void Graph::Remove_Sites(const List &L)
@@ -115,8 +130,11 @@ void Graph::Remove_Link(long s1, long s2)
 {
      if (!Is_Link(s1,s2)) return;
      V[s1].Substract(s2);
-     V[s2].Substract(s1);
-     updated=false;
+     if (!directed)
+	  V[s2].Substract(s1);
+     long index=Link_Index(s1,s2);
+     I1.Remove(index);
+     I2.Remove(index);
      Nl--;
 }
 
@@ -131,26 +149,30 @@ void Graph::Remove_Link(long l)
 void Graph::Clear()
 {
      if (!N) return;
-     if (updated) I.Destroy(); 
+     I1.Destroy(); 
+     I2.Destroy(); 
      for (long i=1;i<=N;i++)
 	  V[i].Destroy();
-     updated=false;
      Nl=0;
 }
-	  
-void Graph::Update_Index() 
-// I(n) means the number of links for all sites < n
+
+// Re-build the link indices, assuming the neighborhood structure V
+// and knowing whether the graph is directed or not
+void Graph::Update_Index()
 {
-     updated=true;
-     I.Create(N);
-     I(1)=0;
-     for (long i=2;i<=N;i++)
-     {
-	  I(i)=I(i-1);
-	  for (long j=1;j<=V[i-1].N;j++)
-	       if (V[i-1](j)>i-1) I(i)++; 
-               // only links (s1-s2) with s2>s1 count
-     }
+     I1.Destroy();
+     I2.Destroy();
+     for (long i=1;i<=N;i++)
+	  for (long k=1;k<=V[i].N;k++)
+	  {
+	       long j=V[i](k); // so i-j is a pair
+	       if (directed || !Is_Link(j,i) )
+	       {
+		    I1.Append(i);
+		    I2.Append(j);
+	       }
+	  }
+     Nl=I1.N;
 }
 
 long Graph::Degree(long p) const // number of neighbours of site p
@@ -176,62 +198,45 @@ bool Graph::Is_Link(long s1, long s2) const
      return true;
 }
 	  
-long Graph::Link_Index(long s1,long s2) const
-// Get the index of the link corresponding to sites s1-s2
+long Graph::Link_Index(long s1, long s2) const
+// Get the index of the link corresponding to sites s1->s2
 // Returns 0 if sites are not linked
 {
      if (s1<=0 || s1>N || s2<=0 || s2>N) return 0;
      if (!Is_Link(s1,s2)) return 0;
-     if (!updated) 
-	  Error("Link Index was not updated for Get_Link_Index!\n");
-
-     long i1, i2;
-     i1=Min(s1,s2); 
-     i2=Max(s1,s2); 
-     long index=I(i1); 
-     for (long j=1;j<=V[i1].N;j++)
-     {
-	  long nj=V[i1](j);
-	  if (nj>i1) index++;
-	  if (nj==i2) break;
-     }
-     return index;
+     
+     long index=0;
+     if (directed)
+	  for (long l=1;l<=Nl;l++)
+	       if (I1(l)==s1 && I2(l)==s2) 
+	       {
+		    index=l;
+		    break;
+	       }
+     if (!directed)
+	  for (long l=1;l<=Nl;l++)
+	       if ( (I1(l)==s1 && I2(l)==s2) ||  (I1(l)==s2 && I2(l)==s1))
+	       {
+		    index=l;
+		    break;
+	       }
+     if (!index) Error("Link not found! Weird!\n");
+     return index;    
 }
 
 // returns s1 and s2 as the sites corresponding to link number "index"
 void Graph::Link_Sites(long &s1, long &s2, long index) const
 {
-     if (!updated)
-     	  Error("Link Index was not updated for Get_Link_Sites!\n");
-#ifdef DEBUG
-     if (!(I(N)>=index && I(1)<index)) 
-	  Error("Link Index is inconsistent!\n");
-#endif
-     // Binary search
-     long sa=1, sb=N;
-     do
-     {
-	  long sc=(sb+sa)/2;
-	  if (I(sc)>=index) sb=sc;
-	  else sa=sc;
-     }while(sb-sa>1); // Now I(sa)<=index<=I(sa+1)
-     s1=sa;  // the first neighbour is sa
-     long index_0=I(s1);
-     long i=0; // s2 shall always be higher than s1
-     for (long j=1;j<=V[s1].N;j++)
-     {
-	  s2=V[s1](j);
-	  if (s2>s1) i++;
-	  if (index_0+i==index) break;
-     }while(index_0+i< index);
+     s1=I1(index);
+     s2=I2(index);
 }
 
 Matrix Graph::Adjacency_Matrix() const
 {
      Matrix A(N);
      for (long i=1;i<=N;i++)
- 	  for (long j=i+1;j<=N;j++)
-	       if (Is_Link(i,j)) A(i,j)=A(j,i)=1.0;
+ 	  for (long j=1;j<=N;j++)
+	       if (Is_Link(i,j)) A(i,j)=1.0;
      return A;
 }
 
@@ -435,6 +440,7 @@ long& Graph::operator()(long n, long m)
 
 void Graph::Write() const 
 {
+     if (directed) printf("Directed ");
      printf("Graph with %ld sites and %ld links\n",N,Nl);
      for (long i=1;i<=N;i++)
      {
@@ -442,13 +448,14 @@ void Graph::Write() const
 	 V[i].Write();
      }
      printf("\n");
-     if (!updated) return;
      printf("Links: \n");
      long s1, s2;
      for (long l=1;l<=Nl;l++)
      {
 	  Link_Sites(s1,s2,l);
-	  printf("Link %ld: (%ld-%ld)\n",l,s1,s2);
+	  if (!directed)
+	       printf("Link %ld: (%ld-%ld)\n",l,s1,s2);
+	  else printf("Link %ld: %ld->%ld\n",l,s1,s2);
      }
      printf("\n");
 }
@@ -457,7 +464,9 @@ bool Graph::Save(const char *name) const
 {
      FILE *fich=fopen(name,"wt");
      if (!fich) return false;
+     if (directed) fprintf(fich,"Directed ");
      fprintf(fich,"Graph with %ld sites and %ld links\n",N,Nl);
+
      for (long i=1;i<=N;i++)
      {
 	  fprintf(fich,"%ld (%ld): ",i,V[i].N);
@@ -466,7 +475,6 @@ bool Graph::Save(const char *name) const
 	  fprintf(fich,"\n");
      }
      fprintf(fich,"\n");
-     if (!updated) {  fclose(fich); return true; }
      fprintf(fich,"Links: \n");
      long s1, s2;
      for (long l=1;l<=Nl;l++)
@@ -483,9 +491,20 @@ bool Graph::Load(const char *name)
 {
      FILE *fich=fopen(name,"rt");
      long n, nl;
-     if (!fscanf(fich,"Graph with %ld sites and %ld links\n",&n,&nl))
-	  return false;
+     Text Z;
      Destroy();
+     Z.Get_Line(fich);
+     if (Z.Is_Here("Directed"))
+     {
+	  directed=true;
+	  sscanf(Z.D,"Directed Graph with %ld sites and %ld links\n",
+		 &n,&nl);
+     }
+     else 
+     {
+	  directed=false;
+	  sscanf(Z.D,"Graph with %ld sites and %ld links\n",&n,&nl);
+     }
      Add_Sites(n);
      for (long i=1;i<=n;i++)
      {
@@ -494,12 +513,11 @@ bool Graph::Load(const char *name)
 	       return false;
 	  if (i2!=i) return false;
 	  V[i].Create(d);
-	  Nl+=d;
 	  for (long j=1;j<=d;j++)
 	       if (!fscanf(fich,"%ld",&V[i](j)))
 		    return false;
      }
-     Nl/=2;
+     Update_Index();
      fclose(fich);
      return true;
 }
@@ -513,11 +531,10 @@ void Copy(Graph &G, const Graph &G2)
      if (G.N!=0) G.Destroy();
      G.Create(G2.N);
      G.Nl=G2.Nl;
-     G.updated=G2.updated;
      for (long i=1;i<=G.N;i++)
 	  Copy(G.V[i],G2.V[i]);
-     if (G.updated)
-	  Copy(G.I,G2.I);
+     Copy(G.I1,G2.I1);
+     Copy(G.I2,G2.I2);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -530,7 +547,7 @@ Graph Linear_Graph(long N)
      G.Add_Site();
      for (long i=2;i<=N;i++)
 	 G.Add_Site(i-1);
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 
@@ -538,7 +555,7 @@ Graph Linear_Graph_PBC(long N)
 {
      Graph G=Linear_Graph(N);
      G.Add_Link(1,N);
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 
@@ -554,7 +571,7 @@ Graph Square_Graph(long lx, long ly)
 	      if (x>1) G.Add_Link((x-1)*ly+y,(x-2)*ly+y);
 	      if (y>1) G.Add_Link((x-1)*ly+y,(x-1)*ly+y-1);
 	 }
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 
@@ -574,7 +591,7 @@ Graph Square_Graph_PBC(long lx, long ly)
 	      else G.Add_Link((x-1)*ly+y,(x-1)*ly+ly);
 	     
 	 }
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 
@@ -584,7 +601,7 @@ Graph Complete_Graph(long N)
      for (long i=1;i<N;i++)
 	  for (long j=i+1;j<=N;j++)
 	       G.Add_Link(i,j);
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 
@@ -597,7 +614,7 @@ Graph Matrix_2_Graph(const Matrix &M)
      for (long i=1;i<=N;i++)
 	  for (long j=1;j<=N;j++)
 	       if (M(i,j)!=0.0) G.Add_Link(i,j);
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 
@@ -617,7 +634,7 @@ Graph Points_2_Graph(const Matrix &M, double dcutoff)
 	       if (dist<=dcutoff) G.Add_Link(i,j);
 	  }
      }
-     G.Update_Index();
+//     G.Update_Index();
      return G;
 }
 

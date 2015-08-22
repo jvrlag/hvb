@@ -1,12 +1,13 @@
 ////////////////////////////////////////////////////////
 // hvb++ 1.0
 // Copyleft: Javier Rodríguez Laguna
-// 080725-101112-150125
-// Graph class
+// 080725-101112-150125-150603
+// Graph class, either directed or undirected
 #ifndef GRAPH_HEADER
 #define GRAPH_HEADER
 #include"Common.h"
 #include"Matrix.h"
+#include"Text.h"
 
 class Graph
 {
@@ -14,8 +15,8 @@ public:
      long N; // sites number
      long Nl; // number of links
      List *V;  // neighborhood structure
-     List I;   // I(n)=number of links for sites<n
-     bool updated; // if the link indices were created
+     List I1, I2; // starting and ending point of each link
+     bool directed;  // if true, directed graph
      
      Graph();
      Graph(long N);
@@ -24,6 +25,8 @@ public:
      void Start();
      void Create(long n);
      void Destroy();
+     void Set_Directed();
+     void Set_Undirected(); 
 
      long Add_Site(long n=0); // n is the stem of the site
      void Add_Sites(long n); // create n new sites
@@ -33,7 +36,7 @@ public:
      void Remove_Link(long, long);
      void Remove_Link(long);
      void Clear(); // delete all links, but retain sites
-     void Update_Index();
+     void Update_Index(); // Update the link index, neighborhood is canonical
 
      long Degree(long p) const; // number of neighbours of site p
      long Neighbour(long p, long k) const; // k-th neighbour of site p

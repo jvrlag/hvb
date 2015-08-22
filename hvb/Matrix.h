@@ -100,6 +100,10 @@ void   Copy(Vector& B, const Vector& A);
 Vector operator-(const Vector &);
 Vector operator+(const Vector &, const Vector &);
 Vector operator-(const Vector &, const Vector &);
+Vector operator+(const Vector &V, double p); 
+Vector operator+(double p, const Vector &V); 
+Vector operator-(const Vector &V, double p);
+Vector operator-(double p, const Vector &V);
 Vector operator*(double, const Vector &);
 Vector operator*(const Vector &, double);
 Vector operator/(const Vector &, double);
@@ -250,6 +254,7 @@ Matrix Zero(long,long=0);
 Matrix Unit(long,long=0);
 Matrix Diag(const Vector &E);
 void Write(const Matrix &M);
+Matrix Constant(double x, long, long);
 
 Matrix operator-(const Matrix &);
 Matrix operator+(const Matrix &, const Matrix &);
