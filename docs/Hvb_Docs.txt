@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 % 150529-150602-150806-150822
-=======
-% 150529-150602
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 
 
 *** HVB ***
@@ -38,17 +34,11 @@ INDEX
 
 - Optimization
 
-<<<<<<< HEAD
 - Calculus
 
 - Graph structures
 
 - Text parsing
-=======
-- Graph structures
-
-- Parsing text
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 
 - Graphics
 
@@ -56,10 +46,6 @@ INDEX
 
 - PostScript output
 
-<<<<<<< HEAD
-=======
-- Manybody Physics
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 
 =================================================================
 
@@ -1563,22 +1549,16 @@ Matrix Unit(long n1, long n2=0);
 Matrix Diag(const Vector& E);
        Return a diagonal Matrix with E as the diagonal.
 
-<<<<<<< HEAD
 Matrix Constant(double x, long n1, long n2);
        Return a constant matrix, all elements equal to x. Notice that
        two arguments should be given, otherwise it will give a Vector.
 
-=======
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 void   Write(const Matrix& M);
        Write Matrix M to stdout.
 
 void   Multiply(Vector& W, const Matrix& M, const Vector& V);
        Make W=M*V.
-<<<<<<< HEAD
 
-=======
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 void   Multiply(Matrix& R, const Matrix& M1, const Matrix& M2);
        Make R=M1*M2.
 
@@ -1716,12 +1696,8 @@ MatrixC Diag_C(const Vector &V);
 	Vector V.
 
 
-<<<<<<< HEAD
 =====================================================================
 
-=======
-===================================================================
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 
 
 *** OPTIMIZATION ***
@@ -1812,7 +1788,6 @@ All optimizer functions have a second prototype, in which the Func_VR
 is substituted by the function pointer and the parameters pointer.
 
 
-<<<<<<< HEAD
 ===================================================================
 
 
@@ -1915,8 +1890,6 @@ double  Interpolate(double x, void *M)
 	Interpolation function in Func_RR form, so as to use in
 	integration, etc.
 
-=======
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 
 ===================================================================
 
@@ -2097,10 +2070,6 @@ Graph Remove_Sites(const Graph& G, const List& L);
 
 =====================================================================
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 *** PARSING TEXT ***
 
 In order to parse files, and read their contents in a comfortable way,
@@ -2241,12 +2210,9 @@ bool  operator==(const Text &S1, const Text &S2);
       Overloaded comparison operator, returns true if Text S1 and S2
       are equal.
 
-<<<<<<< HEAD
 bool Is_Space(const char q)
      Returns true if q is either a blank, tabulator or newline.
 
-=======
->>>>>>> 838a1c3b45d622da7bac1f01b047b778407fe8df
 
 ==================================================================
 
