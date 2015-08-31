@@ -949,7 +949,7 @@ void MatrixC::Remove_Col(long p)
      if (p>N2) Error("Remove non-existent Col\n");
 #endif
      if (N2==1) { Destroy(); return; }
-     for (long i=p+1;p<=N2;p++)
+     for (long i=p+1;i<=N2;i++)
 	  memcpy(D+(i-2)*N1+1,D+(i-1)*N1+1,N1*sizeof(cmplx));
      Resize(N1,N2-1);
 }
