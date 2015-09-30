@@ -165,7 +165,8 @@ void PS_Arc(FILE *psfile, double cx0, double cy0, double R,
 	    double a0, double a1)
 {
      fprintf(psfile,"n\n");
-     fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g arc\n",cx0,cy0,R,a0,a1);
+     fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g arc\n",cx0,cy0,R,
+	     a0*180./M_PI,a1*180./M_PI);
      fprintf(psfile,"s\n");
 }
 
