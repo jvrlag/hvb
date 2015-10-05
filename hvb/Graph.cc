@@ -166,7 +166,7 @@ void Graph::Update_Index()
 	  for (long k=1;k<=V[i].N;k++)
 	  {
 	       long j=V[i](k); // so i-j is a pair
-	       if (directed || !Is_Link(j,i) )
+	       if (directed || (i<j) )
 	       {
 		    I1.Append(i);
 		    I2.Append(j);
