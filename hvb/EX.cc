@@ -392,7 +392,6 @@ char EX_Key_Pressed() // if a key is pressed, return it, otherwise return 0
      // KeySym tecla=EX_Key_2_Keysym(&evento);
      // return (char)tecla;
      XEvent evento;
-<<<<<<< HEAD
      int pressed;
      pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window, 
 			       KeyPressMask, &evento);
@@ -400,15 +399,6 @@ char EX_Key_Pressed() // if a key is pressed, return it, otherwise return 0
      KeySym tecla=EX_Key_2_Keysym(&evento);
      return (char)tecla;
 
-=======
-     bool pressed;
-     pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window,
-			       KeyPressMask,&evento);
-     XSync(EX_Info.display,true); // discard events
-     if (!pressed) return 0;
-     KeySym tecla=EX_Key_2_Keysym(&evento);
-     return (char)tecla;
->>>>>>> d56b08fd4b5ee26a956ef7f66240bfe2797516a5
 }    
 
 char EX_Read_Key() // Wait until a key is pressed, return it
