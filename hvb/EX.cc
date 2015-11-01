@@ -81,8 +81,9 @@ EX_Window* EX_Create_Window(int x, int y, int width, int height)
      XMapRaised(EX_Info.display,window);
 
      event_mask|=ExposureMask | PointerMotionMask | KeyPressMask | 
-	  StructureNotifyMask | ButtonPressMask | ButtonMotionMask | 
-	  ButtonReleaseMask;
+     	  StructureNotifyMask | ButtonPressMask | ButtonMotionMask | 
+     	  ButtonReleaseMask;
+
      XSelectInput(EX_Info.display,window,event_mask);
      
      XEvent evt;
@@ -94,7 +95,7 @@ EX_Window* EX_Create_Window(int x, int y, int width, int height)
 
      XSync(EX_Info.display, false);
 
-     EX_Window* W=new EX_Window;
+     EX_Window* W=(EX_Window*)malloc(sizeof(EX_Window));
      W->window=window;
      W->use_buffer=false;
      W->width=width;
@@ -121,7 +122,7 @@ EX_Window* EX_Start(int x, int y, int width, int height, const char *name)
      EX_Info.gc=XCreateGC(EX_Info.display, W->window, 
 			 (GCForeground | GCBackground), &xgcvalues);
      EX_CW=W;
-     EX_Prepare_Font(EX_Default_Font);
+//     EX_Prepare_Font(EX_Default_Font);
      return W;
 }
 
@@ -138,7 +139,6 @@ void EX_Enable_Buffer()
      XGetWindowAttributes(EX_Info.display, EX_CW->window, &wa);
      EX_CW->buffer = XCreatePixmap(EX_Info.display, EX_Info.root,
 				  wa.width, wa.height, wa.depth);
-//     printf("Created buffer, with size: %ld\n",sizeof(EX_CW->buffer));
      EX_CW->use_buffer=true;
      EX_Clear();
 }
@@ -172,17 +172,24 @@ void EX_Flush()
 {
      if (EX_CW->use_buffer)
      {
-	  XWindowAttributes wa;
-	  XGetWindowAttributes(EX_Info.display, EX_CW->window, &wa);
 	  XCopyArea(EX_Info.display, EX_CW->buffer, 
 		    EX_CW->window, EX_Info.gc,
-		    0, 0, wa.width, wa.height, 0, 0);
+	   	    0, 0, EX_CW->width, EX_CW->height, 0, 0);
+	  // Now, capture the Expose event that will be created
+	  XEvent evento;
+	  XCheckWindowEvent(EX_Info.display,EX_CW->window,
+	  		    ExposureMask,&evento);
+
      }
      XFlush(EX_Info.display);
 }
 
 void EX_Close()
 {
+//     XFreeFont(EX_Info.display,EX_Info.font);
+     XFree(EX_Info.gc);
+     EX_Destroy(EX_CW);
+     XSetCloseDownMode(EX_Info.display,DestroyAll);
      XCloseDisplay(EX_Info.display);
 }
 
@@ -191,6 +198,7 @@ void EX_Destroy(EX_Window *EW)
      if (EW->use_buffer)
 	  XFreePixmap(EX_Info.display,EW->buffer);
      XDestroyWindow(EX_Info.display,EW->window);
+     XFree(EW);
 }
 
 void EX_Line(int x0, int y0, int x, int y)
@@ -373,17 +381,27 @@ void EX_Color(double R, double G, double B)
      EX_Set_Color(color);
 }
 
-int EX_Key_Pressed()
+char EX_Key_Pressed() // if a key is pressed, return it, otherwise return 0
 {
+     // XEvent evento;
+     // bool pressed;
+     // pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window,
+     // 			       KeyPressMask,&evento);
+     // XSync(EX_Info.display,true); // discard events
+     // if (!pressed) return 0;
+     // KeySym tecla=EX_Key_2_Keysym(&evento);
+     // return (char)tecla;
      XEvent evento;
      int pressed;
-     pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window,
-			       KeyPressMask,&evento);
-     XPutBackEvent(EX_Info.display,&evento);
-     return pressed;    
+     pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window, 
+			       KeyPressMask, &evento);
+     if (!pressed) return 0;
+     KeySym tecla=EX_Key_2_Keysym(&evento);
+     return (char)tecla;
+
 }    
 
-char EX_Read_Key()
+char EX_Read_Key() // Wait until a key is pressed, return it
 {
      XEvent evento;
      KeySym tecla;
@@ -397,23 +415,25 @@ char EX_Read_Key()
      return (char)tecla;
 }
 
-int EX_Pointer()
+int EX_Pointer() // if the pointer has moved or clicked, returns 1
+// Should be followed by a EX_Read_Pointer
 {
      XEvent evento;
      int pressed;
      pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window, 
 			       ButtonPressMask | 
 			       ButtonReleaseMask | ButtonMotionMask, &evento);
-     XPutBackEvent(EX_Info.display,&evento);
+     if (pressed) XPutBackEvent(EX_Info.display,&evento);
      return pressed;
 }
 
-int EX_Pointer_Pressed()
+int EX_Pointer_Pressed() // if the pointer has been clicked, returns 1
+// Should be followed by a EX_Read_Pointer
 {
      XEvent evento;
      int pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window,
 				   ButtonPressMask,&evento);
-     XPutBackEvent(EX_Info.display, &evento);
+     if (pressed) XPutBackEvent(EX_Info.display, &evento);
      return pressed;
 }
      	
@@ -421,7 +441,7 @@ EX_Pointer_State EX_Read_Pointer()
 {
      XEvent evento;
      EX_Pointer_State C;
-     static int button=0;
+     int button=0;
      
      do
      {	
@@ -448,6 +468,7 @@ EX_Pointer_State EX_Read_Pointer()
 	  button=0;
 	  C.button=0;
      }
+     XFlush(EX_Info.display);
      return C;
 }
 
@@ -538,9 +559,9 @@ KeySym EX_Key_2_Keysym (XEvent *event)
      XKeyEvent *keyevent;
      char cad[20];
      
-     keyevent=(XKeyEvent *) event;
+     keyevent=(XKeyEvent*) event;
      XLookupString(keyevent,cad,19,&keysym,&compose);
-     return(keysym);
+     return keysym;
 }
 
 // Set the mode for the graphics context, i.e.: how to "mix" new bits coming

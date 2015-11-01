@@ -75,15 +75,22 @@ void   Delay(double Dt);
 ////////////////////////////////////////////////////////
 // Random number generator
 ////////////////////////////////////////////////////////
-
-void   Rand_Open(unsigned long s);
+#define MTRNG_N 624
+typedef struct
+{
+     unsigned long mt[MTRNG_N];
+     int mti;
+}Rand_State_Type;
+extern Rand_State_Type *Rand_State;
 extern bool Rand_Started;
+void   Rand_Open(unsigned long s);
 unsigned long Rand_Full();
 double Rand();
 double Rand(double a, double b);
 long   Rand_I(long a, long b);
 double Rand_Gaussian(double mu, double sigma);
 void   Rand_Close();
+
 
 ////////////////////////////////////////////////////////
 // Binary numbers

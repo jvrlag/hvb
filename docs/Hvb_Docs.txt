@@ -281,7 +281,9 @@ double Delay(double t);
 - Random numbers
 
 We have used a random number generator from Donald Knuth's book
-"Seminumerical algorithms", called the Mersenne's twister.
+"Seminumerical algorithms", called the Mersenne's twister. The
+internal state of the generator is stored in a variable of type
+Rand_State_Type*. It is global and called Rand_State.
 
 void Rand_Open(long s); 
        Starts the random number generator, with seed s. If you do not
@@ -2369,8 +2371,9 @@ void EX_Mode_Copy();
 
 - Keyboard and mouse interaction
 
-int 	EX_Key_Pressed();
-	Returns true when a key is being pressed.
+char 	EX_Key_Pressed();
+	Returns 0 if no key is pressed, or the character to be printed
+	if there is.
 
 char 	EX_Read_Key();
 	Waits until a key is pressed, and returns the character that
@@ -2532,7 +2535,13 @@ void PS_Prepare_Font(FILE *psfile, const char *fontname, int size);
 
 void PS_Text(double x0, double y0, const char *S);
 void PS_Text(FILE *psfile, double x0, double y0, const char *S);
-     Show the text given in string S at the point (x0,y0).
+     Show the text given in string S at the point (x0,y0), centered
+     horizontally. 
+
+void PS_Box_Text(double x0, double y0, const char *S, double b);
+void PS_Box_Text(FILE *psfile, double x0, double y0, const char *S, double b);
+     Draw a white-filled box able to contain string S, drawn by
+     PS_Text. Notice that we can not retrieve the width of the text!
 
 void PS_Translate(double x, double y);
 void PS_Translate(FILE *psfile, double x, double y);

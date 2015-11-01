@@ -165,7 +165,8 @@ void PS_Arc(FILE *psfile, double cx0, double cy0, double R,
 	    double a0, double a1)
 {
      fprintf(psfile,"n\n");
-     fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g arc\n",cx0,cy0,R,a0,a1);
+     fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g arc\n",cx0,cy0,R,
+	     a0*180./M_PI,a1*180./M_PI);
      fprintf(psfile,"s\n");
 }
 
@@ -173,22 +174,6 @@ void PS_Arc(double cx0, double cy0, double R, double a0, double a1)
 {
      PS_Arc(PS_Current_File,cx0,cy0,R,a0,a1);
 }
-
-// void PS_Curve(FILE *psfile, double x1, double y1, double x2, double y2,
-// 	      double x3, double y3, double x4, double y4)
-// {
-//      fprintf(psfile,"n\n");
-//      fprintf(psfile,"%.4g %.4g m\n",x1,y1);
-//      fprintf(psfile,"%.4g %.4g %.4g %.4g %.4g %.4g curveto\n",
-// 	     x2,y2,x3,y3,x4,y4);
-//      fprintf(psfile,"s\n");
-//}
-
-// void PS_Curve(double x1, double y1, double x2, double y2,
-// 	      double x3, double y3, double x4, double y4)
-// {
-//      PS_Curve(PS_Current_File,x1,y1,x2,y2,x3,y3,x4,y4);
-// }
 
 void PS_Polygon(FILE *psfile, const Vector &X, const Vector &Y)
 {
@@ -226,6 +211,8 @@ void PS_Prepare_Font(FILE *psfile, const char *fontname, int size)
      fprintf(psfile,"/%s findfont\n",fontname);
      fprintf(psfile,"%d scalefont\n",size);
      fprintf(psfile,"setfont\n");
+     fprintf(psfile,"/textheight{gsave 0 0 moveto (HÍpg) true charpath pathbbox\n"); 
+     fprintf(psfile,"exch pop 3 -1 roll pop exch sub grestore} bind def\n");
 }
 
 void PS_Prepare_Font(const char *fontname, int size)
@@ -233,15 +220,32 @@ void PS_Prepare_Font(const char *fontname, int size)
      PS_Prepare_Font(PS_Current_File,fontname,size);
 }
 
+// Draws String S at point (x0,y0), centered horizontally
 void PS_Text(FILE *psfile, double x0, double y0, const char *S)
 {
      fprintf(psfile,"%.4g %.4g m\n",x0,y0);
+     fprintf(psfile,"(%s) stringwidth pop 2 div neg 0 rmoveto\n",S);
      fprintf(psfile,"(%s) show\n",S);
 }
 
 void PS_Text(double x0, double y0, const char *S)
 {
      PS_Text(PS_Current_File,x0,y0,S);
+}
+
+// Draws a box able to contain string S, centered on (x0,y0), margin b
+void PS_Box_Text(FILE *psfile, double x0, double y0, const char *S, double b)
+{
+     fprintf(psfile,"gsave /h1 textheight %.4g 2 mul add def\n",b);
+     fprintf(psfile,"/w1 (%s) stringwidth pop %.4g 2 mul add def\n",S,b);
+     fprintf(psfile,"%.4g %.4g m w1 %.4g sub 2 div neg 0 rmoveto \n",x0-b,y0-b,2.0*b);
+     fprintf(psfile,"w1 0 rlineto 0 h1 rlineto w1 neg 0 rlineto 0 c\n");
+     fprintf(psfile,"gsave 1 1 1 sr f grestore s grestore\n");
+}
+
+void PS_Box_Text(double x0, double y0, const char *S, double b)
+{
+     PS_Box_Text(PS_Current_File,x0,y0,S,b);
 }
 
 #endif

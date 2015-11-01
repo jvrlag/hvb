@@ -186,32 +186,26 @@ void Delay(double Dt)
 static const unsigned long MTRNG_UPPER_MASK = 0x80000000UL;
 static const unsigned long MTRNG_LOWER_MASK = 0x7fffffffUL;
 
-typedef struct
-{
-     unsigned long mt[MTRNG_N];
-     int mti;
-}mtrng_state_t;
-
-mtrng_state_t *mtrng_state;
+Rand_State_Type *Rand_State;
 bool Rand_Started=false;
 
 void Rand_Open(unsigned long int s)
 {
-     mtrng_state=(mtrng_state_t*)malloc(sizeof(mtrng_state_t));
+     Rand_State=(Rand_State_Type*)malloc(sizeof(Rand_State_Type));
      if (s == 0)
 	  s = 4357;   /* the default seed is 4357 */
-     mtrng_state->mt[0]= s & 0xffffffffUL;
+     Rand_State->mt[0]= s & 0xffffffffUL;
      int i;
      for (i=1; i<MTRNG_N; i++)
      {
 	 /* See Knuth's "Art of Computer Programming" Vol. 2, 3rd
 	    Ed. p.106 for multiplier. */
-	  mtrng_state->mt[i] =
+	  Rand_State->mt[i] =
 	       (1812433253UL * 
-		(mtrng_state->mt[i-1] ^ (mtrng_state->mt[i-1] >> 30)) + i);
-	  mtrng_state->mt[i] &= 0xffffffffUL;
+		(Rand_State->mt[i-1] ^ (Rand_State->mt[i-1] >> 30)) + i);
+	  Rand_State->mt[i] &= 0xffffffffUL;
      }
-     mtrng_state->mti = i;
+     Rand_State->mti = i;
 #ifdef DEBUG
      Rand_Started=true;
 #endif
@@ -219,7 +213,7 @@ void Rand_Open(unsigned long int s)
 
 void Rand_Close()
 {
-     free(mtrng_state);
+     free(Rand_State);
 #ifdef DEBUG
      Rand_Started=false;
 #endif
@@ -231,9 +225,9 @@ unsigned long Rand_Full()
      if (!Rand_Started) Error("Using Rand without Rand_Open\n");
 #endif
      unsigned long k;
-     unsigned long *const mt = mtrng_state->mt;
+     unsigned long *const mt = Rand_State->mt;
 #define MTRNG_MAGIC(y) (((y)&0x1) ? 0x9908b0dfUL : 0)
-     if (mtrng_state->mti >= MTRNG_N)
+     if (Rand_State->mti >= MTRNG_N)
      {   // generate N words at one time 
 	  int kk;
 	  for (kk=0; kk<MTRNG_N-MTRNG_M; kk++)
@@ -252,15 +246,15 @@ unsigned long Rand_Full()
 	  unsigned long y = (mt[MTRNG_N - 1] & MTRNG_UPPER_MASK) | 
 	       (mt[0] & MTRNG_LOWER_MASK);
 	  mt[MTRNG_N - 1] = mt[MTRNG_M - 1] ^ (y >> 1) ^ MTRNG_MAGIC(y);
-	  mtrng_state->mti = 0;
+	  Rand_State->mti = 0;
      }
      // Tempering
-     k = mt[mtrng_state->mti];
+     k = mt[Rand_State->mti];
      k ^= (k >> 11);
      k ^= (k << 7) & 0x9d2c5680UL;
      k ^= (k << 15) & 0xefc60000UL;
      k ^= (k >> 18);
-     mtrng_state->mti++;
+     Rand_State->mti++;
      return k;
 }
 

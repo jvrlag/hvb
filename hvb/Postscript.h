@@ -66,6 +66,9 @@ void PS_Prepare_Font(const char *fontname, int size);
 void PS_Text(FILE *psfile, double x0, double y0, const char *S);
 void PS_Text(double x0, double y0, const char *S);
 
+void PS_Box_Text(FILE *psfile, double x0, double y0, const char *S, double b);
+void PS_Box_Text(double x0, double y0, const char *S, double b);
+
 #endif
 
 

@@ -326,12 +326,12 @@ bool Vector::Save_Binary(const char *name) const
 bool Vector::Load_Binary(FILE *fich)
 {
      int ausgang;
-     ausgang=fwrite(&N,sizeof(long),1,fich);
+     ausgang=fread(&N,sizeof(long),1,fich);
      if (ausgang!=1) return false;
      if (!N) { D=(double*)NULL; return true; }
      Create(N);
      Zero();
-     ausgang=fwrite(D,sizeof(double),N+1,fich);
+     ausgang=fread(D,sizeof(double),N+1,fich);
      if (ausgang!=N+1) return false;
      return true;
 }
@@ -460,11 +460,11 @@ double Vector::Variance() const
 {
      if (N==1) return 0.0;
      double sumsq=0.0;
-     for (long i=1;i<=N;i++)
-          sumsq+=::Sqr(D[i]);
-     sumsq/=(double)N;
      double aver=Average();
-     return sumsq-::Sqr(aver);
+     for (long i=1;i<=N;i++)
+          sumsq+=::Sqr(D[i]-aver);
+     sumsq/=(double)N;
+     return sumsq;
 }
 
 // Find if the vector is zero within a given tolerance
@@ -2309,9 +2309,7 @@ Matrix Ket_Bra(const Vector &V, const Vector &W)
 {
      long N1=V.N, N2=W.N;
      Matrix R(N1,N2);
-     for (long i=1;i<=N1;i++)
-	  for (long j=1;j<=N2;j++)
-	       R(i,j)=V(i)*W(j);
+     Ket_Bra(R,V,W);
      return R;
 }
 

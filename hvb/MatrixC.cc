@@ -280,11 +280,11 @@ bool VectorC::Save_Binary(const char *name) const
 bool VectorC::Load_Binary(FILE *fich)
 {
      int nread;
-     nread=fwrite(&N,sizeof(long),1,fich);
+     nread=fread(&N,sizeof(long),1,fich);
      if (nread!=1) return false;
      if (!N) { D=(cmplx*)NULL; return true; }
      Create(N);
-     nread=fwrite(D+1,sizeof(cmplx),N,fich);
+     nread=fread(D+1,sizeof(cmplx),N,fich);
      if (nread!=N) return false;
      return true;
 }
@@ -2082,16 +2082,14 @@ void Ket_Bra(MatrixC &R, const VectorC &V, const VectorC &W)
      R.Create(N1,N2);
      for (long i=1;i<=N1;i++)
 	  for (long j=1;j<=N2;j++)
-	       R(i,j)=conj(V(i))*W(j);
+	       R(i,j)=V(i)*conj(W(j));
 }
 
 MatrixC Ket_Bra(const VectorC &V, const VectorC &W)
 {
      long N1=V.N, N2=W.N;
      MatrixC R(N1,N2);
-     for (long i=1;i<=N1;i++)
-	  for (long j=1;j<=N2;j++)
-	       R(i,j)=conj(V(i))*W(j);
+     Ket_Bra(R,V,W);
      return R;
 }
 

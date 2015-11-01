@@ -1,10 +1,12 @@
 // Optimization routines
 // JaviRL, 100317-150126
-#ifndef OPTIMIZE_HEADER
-#define OPTIMIZE_HEADER
+#ifndef OPTIMIZE_H
+#define OPTIMIZE_H
 
 #include"Matrix.h"
 
+#ifndef CALCULUS_H
+#define CALCULUS_H
 // Function R->R
 class Func_RR
 {
@@ -16,6 +18,7 @@ public:
      ~Func_RR() {}
      double operator()(double x) const;
 };
+#endif
 
 // Function R^n->R
 class Func_VR

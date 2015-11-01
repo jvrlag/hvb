@@ -64,7 +64,7 @@ void EX_Set_Line_Width(int lw);
 
 void EX_Get_Event(XEvent *);
 KeySym EX_Key_2_Keysym (XEvent *event);
-int EX_Key_Pressed();
+char EX_Key_Pressed();
 char EX_Read_Key();
 
 // Struct used to return the position where pointer button was pressed

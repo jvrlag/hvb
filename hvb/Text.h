@@ -8,7 +8,7 @@
 class Text
 {
 public:
-     long N;
+     long N; // number of chars, not including the final 0
      char *D;
      Text();
      Text(const char*);
