@@ -430,20 +430,37 @@ double Vector::Max(long &imax) const
 
 double Vector::Sum() const
 {
-     if (!N) return 0.0;
-     double sum=D[1];
-     for (long i=2;i<=N;i++)
-	  sum+=D[i];
-     return sum;
+     return Sum(1,N);
 }
 
 // Sum from i1 to i2
 double Vector::Sum(long i1, long i2) const
 {
+#ifdef DEBUG
+     if (!N) return 0.0;
+     if (i1<=0 || i1>i2 || i2>N) Error("Incorrect sum limits\n");
+#endif
      double sum=D[i1];
      for (long i=i1+1;i<=i2;i++)
 	  sum+=D[i];
      return sum;
+}
+
+double Vector::Prod() const
+{
+     return Prod(1,N);
+}
+
+double Vector::Prod(long i1, long i2) const
+{
+#ifdef DEBUG
+     if (!N) return 0.0;
+     if (i1<=0 || i1>i2 || i2>N) Error("Incorrect prod limits\n");
+#endif
+     double prod=D[i1];
+     for (long i=i1+1;i<=i2;i++)
+	  prod*=D[i];
+     return prod;
 }
 
 double Vector::Average() const
@@ -460,11 +477,11 @@ double Vector::Variance() const
 {
      if (N==1) return 0.0;
      double sumsq=0.0;
-     for (long i=1;i<=N;i++)
-          sumsq+=::Sqr(D[i]);
-     sumsq/=(double)N;
      double aver=Average();
-     return sumsq-::Sqr(aver);
+     for (long i=1;i<=N;i++)
+          sumsq+=::Sqr(D[i]-aver);
+     sumsq/=(double)N;
+     return sumsq;
 }
 
 // Find if the vector is zero within a given tolerance
@@ -2440,4 +2457,29 @@ Table To_Table(const Matrix &M)
 	  for (long j=1;j<=T.N2;j++)
 	       T(i,j)=(long)round(M(i,j));
      return T;
+}
+
+void Trid_Spectrum(Vector &D, Vector &S)
+{
+     char compz='N';
+     long N=D.N;
+     double *z=(double*)NULL;
+     long ldz=1;
+     double *work=(double*)NULL;
+     long info;
+     dsteqr_(&compz, &N, D.D+1, S.D+1, z, &ldz, work, &info);
+     free(work);
+}
+
+// Matrix B should be the Unit Matrix
+void Trid_Diagonalize(Matrix &B, Vector &D, Vector &S)
+{
+     char compz='V';
+     long N=D.N;
+     double *z=B.D+1;
+     long ldz=N;
+     double *work=(double*)malloc(2*(N-1)*sizeof(double)); 
+     long info;
+     dsteqr_(&compz,&N,D.D+1,S.D+1,z,&ldz,work,&info);
+     free(work);
 }

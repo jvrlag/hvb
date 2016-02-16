@@ -383,14 +383,22 @@ void EX_Color(double R, double G, double B)
 
 char EX_Key_Pressed() // if a key is pressed, return it, otherwise return 0
 {
+     // XEvent evento;
+     // bool pressed;
+     // pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window,
+     // 			       KeyPressMask,&evento);
+     // XSync(EX_Info.display,true); // discard events
+     // if (!pressed) return 0;
+     // KeySym tecla=EX_Key_2_Keysym(&evento);
+     // return (char)tecla;
      XEvent evento;
-     bool pressed;
-     pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window,
-			       KeyPressMask,&evento);
-     XSync(EX_Info.display,true); // discard events
+     int pressed;
+     pressed=XCheckWindowEvent(EX_Info.display,EX_CW->window, 
+			       KeyPressMask, &evento);
      if (!pressed) return 0;
      KeySym tecla=EX_Key_2_Keysym(&evento);
      return (char)tecla;
+
 }    
 
 char EX_Read_Key() // Wait until a key is pressed, return it
@@ -433,7 +441,7 @@ EX_Pointer_State EX_Read_Pointer()
 {
      XEvent evento;
      EX_Pointer_State C;
-     static int button=0;
+     int button=0;
      
      do
      {	

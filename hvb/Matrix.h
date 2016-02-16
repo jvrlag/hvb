@@ -76,6 +76,8 @@ public:
      double Max(long &) const;
      double Sum() const;
      double Sum(long i1, long i2) const;
+     double Prod() const;
+     double Prod(long i1, long i2) const;
      double Average() const;
      double Deviation() const;
      double Variance() const;
@@ -306,7 +308,10 @@ double Norm(const Matrix &M);
 Matrix Sqr(const Matrix &M);
 
 Matrix To_Matrix(const Table &T);
-Table To_Table(const Matrix &M);
+Table  To_Table(const Matrix &M);
+
+void   Trid_Spectrum(Vector &D, Vector &S);
+void   Trid_Diagonalize(Matrix &B, Vector &D, Vector &S);
 
 /////////////////////////////////////////////////////////////
 /// BLAS-LAPACK Headers

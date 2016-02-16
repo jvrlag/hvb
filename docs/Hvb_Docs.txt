@@ -281,7 +281,9 @@ double Delay(double t);
 - Random numbers
 
 We have used a random number generator from Donald Knuth's book
-"Seminumerical algorithms", called the Mersenne's twister.
+"Seminumerical algorithms", called the Mersenne's twister. The
+internal state of the generator is stored in a variable of type
+Rand_State_Type*. It is global and called Rand_State.
 
 void Rand_Open(long s); 
        Starts the random number generator, with seed s. If you do not
@@ -1063,6 +1065,11 @@ double Sum(long p, long q) const;
        Return the sum of the elements from p to q (included). If no
        bounds are given, the complete sum.
 
+double Prod() const;
+double Prod(long p, long q) const;
+       Returns the product of the elements from p to q (included). If
+       no bounds are given, the complete sum.
+
 double Average() const;
 double Deviation() const;
 double Variance() const;
@@ -1634,8 +1641,24 @@ Matrix Sqr(const Matrix& M);
 Matrix To_Matrix(const Table& T);
        Converts a Table to a Matrix by upgrading each long to a double.
 
-Table To_Table(const Matrix& M);
+Table  To_Table(const Matrix& M);
        Rounds each element of Matrix M and puts it into a Table.
+
+void   Trid_Spectrum(Vector &D, Vector &S);
+       Find the spectrum of a symmetric tridiagonal matrix whose
+       diagonal is D and secondary diagonal is S. The spectrum comes
+       out in D, and S is destroyed. Notice that if the secondary
+       diagonal were complex, the spectrum is unperturbed: we can
+       take the modulus of each entry. 
+
+void   Trid_Diagonalize(Matrix &B, Vector &D, Vector &S);
+       Diagonalize a symmetric tridiagonal matrix whose diagonal is D
+       and secondary diagonal is S. The spectrum comes out in D, S is
+       destroyed and the basis is in B, which must be initialized to
+       the unit matrix. If the secondary diagonal is complex, there is
+       a trick which allows you still to use this routine: a
+       similarity transformation with a diagonal matrix with only
+       phases. 
 
 
 - Complex linear algebra
@@ -1670,8 +1693,8 @@ Vector  Sqr(const VectorC& V);
 void    Zaxpy(VectorC &R, const VectorC &V, cmplx alpha);
 	R+=alpha*V;
 
-VectorC Complex(const Vector& V);
-VectorC Complex(const Vector& Re, const VectorC& Im);
+VectorC Cmplx(const Vector& V);
+VectorC Cmplx(const Vector& Re, const VectorC& Im);
 	Build a VectorC, either only from the real part, or from the
 	real and imaginary parts.
 
@@ -2369,8 +2392,9 @@ void EX_Mode_Copy();
 
 - Keyboard and mouse interaction
 
-int 	EX_Key_Pressed();
-	Returns true when a key is being pressed.
+char 	EX_Key_Pressed();
+	Returns 0 if no key is pressed, or the character to be printed
+	if there is.
 
 char 	EX_Read_Key();
 	Waits until a key is pressed, and returns the character that
@@ -2532,7 +2556,13 @@ void PS_Prepare_Font(FILE *psfile, const char *fontname, int size);
 
 void PS_Text(double x0, double y0, const char *S);
 void PS_Text(FILE *psfile, double x0, double y0, const char *S);
-     Show the text given in string S at the point (x0,y0).
+     Show the text given in string S at the point (x0,y0), centered
+     horizontally. 
+
+void PS_Box_Text(double x0, double y0, const char *S, double b);
+void PS_Box_Text(FILE *psfile, double x0, double y0, const char *S, double b);
+     Draw a white-filled box able to contain string S, drawn by
+     PS_Text. Notice that we can not retrieve the width of the text!
 
 void PS_Translate(double x, double y);
 void PS_Translate(FILE *psfile, double x, double y);

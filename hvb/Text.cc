@@ -187,13 +187,19 @@ void Copy(Text &S, const char *z, long n)
 // remove blanks from beginning and end of char, free the pointer
 void Text::Strip_Blanks()
 {
+     if (N==0) return;
      long i0=0;
-     while(D[i0]==' ')
+     while( (D[i0]==' ' || D[i0]==10) && i0<N)
 	  i0++;  // now D[i0]!=' '
      long i1=strlen(D)-1;
-     while(D[i1]==' ')
+     while( (D[i1]==' ' || D[i1]==10) && i1>i0)
 	  i1--;
      long n=i1-i0+1;
+     if (n<=0) 
+     {
+	  Destroy();
+	  return;
+     }
      char *z=(char*)malloc(n+1);
      strncpy(z,D+i0,n);
      z[n]=0;
