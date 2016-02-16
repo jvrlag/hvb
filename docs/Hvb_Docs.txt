@@ -1703,9 +1703,11 @@ Class MatrixC, besides all those, also has a few extra methods:
 void   Herm();
        As a method, get the hermitean conjugate.
 
-void   SVD(MatrixC &BL, MatrixC &BR, Vector &Sigma) const;
-       Singular value decomposition of the current MatrixC, with left
-       basis BL, right basis BR, and singular values Sigma.
+void   SVD(MatrixC &U, MatrixC &V, Vector &Sigma) const;
+       Singular value decomposition of the current MatrixC, with
+       singular values Sigma. The original MatrixC is
+       U*Diag_C(Sigma)*V. The left basis are the columns of U, and the
+       right basis are the rows of V.
 
 As external functions:
 
