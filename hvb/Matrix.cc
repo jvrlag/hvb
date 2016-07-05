@@ -430,20 +430,37 @@ double Vector::Max(long &imax) const
 
 double Vector::Sum() const
 {
-     if (!N) return 0.0;
-     double sum=D[1];
-     for (long i=2;i<=N;i++)
-	  sum+=D[i];
-     return sum;
+     return Sum(1,N);
 }
 
 // Sum from i1 to i2
 double Vector::Sum(long i1, long i2) const
 {
+#ifdef DEBUG
+     if (!N) return 0.0;
+     if (i1<=0 || i1>i2 || i2>N) Error("Incorrect sum limits\n");
+#endif
      double sum=D[i1];
      for (long i=i1+1;i<=i2;i++)
 	  sum+=D[i];
      return sum;
+}
+
+double Vector::Prod() const
+{
+     return Prod(1,N);
+}
+
+double Vector::Prod(long i1, long i2) const
+{
+#ifdef DEBUG
+     if (!N) return 0.0;
+     if (i1<=0 || i1>i2 || i2>N) Error("Incorrect prod limits\n");
+#endif
+     double prod=D[i1];
+     for (long i=i1+1;i<=i2;i++)
+	  prod*=D[i];
+     return prod;
 }
 
 double Vector::Average() const
@@ -465,6 +482,35 @@ double Vector::Variance() const
           sumsq+=::Sqr(D[i]-aver);
      sumsq/=(double)N;
      return sumsq;
+}
+
+double Vector::Moment(double p) const
+{
+     double res=0.0;
+     for (long i=1;i<=N;i++)
+	  res+=pow(D[i],p);
+     return res/(double)N;
+}
+
+double Vector::Skewness() const
+{
+     double var=Variance();
+     double m1=Average();
+     double m2=Moment(2.0);
+     double m3=Moment(3.0);
+     double skewness=(m3-3.0*m1*m2+2.0*pow(m1,3.0))/pow(var,1.5);
+     return skewness;
+}
+
+double Vector::Kurtosis() const
+{
+     double var=Variance();
+     double m1=Average();
+     double m2=Moment(2.0);
+     double m3=Moment(3.0);
+     double m4=Moment(4.0);
+     double kurt=(m4-4.0*m1*m3-3.0*::Sqr(m2)+12.0*m2*::Sqr(m1)-6.0*pow(m1,4.0))/(::Sqr(var));
+     return kurt;
 }
 
 // Find if the vector is zero within a given tolerance
@@ -840,6 +886,21 @@ double Deviation(const Vector &V)
 double Variance(const Vector &V)
 {
      return V.Variance();
+}
+
+double Moment(const Vector &V, double p)
+{
+     return V.Moment(p);
+}
+
+double Skewness(const Vector &V)
+{
+     return V.Skewness();
+}
+
+double Kurtosis(const Vector &V)
+{
+     return V.Kurtosis();
 }
 
 Vector Range(double x0, double x1, long N)
@@ -2440,4 +2501,29 @@ Table To_Table(const Matrix &M)
 	  for (long j=1;j<=T.N2;j++)
 	       T(i,j)=(long)round(M(i,j));
      return T;
+}
+
+void Trid_Spectrum(Vector &D, Vector &S)
+{
+     char compz='N';
+     long N=D.N;
+     double *z=(double*)NULL;
+     long ldz=1;
+     double *work=(double*)NULL;
+     long info;
+     dsteqr_(&compz, &N, D.D+1, S.D+1, z, &ldz, work, &info);
+     free(work);
+}
+
+// Matrix B should be the Unit Matrix
+void Trid_Diagonalize(Matrix &B, Vector &D, Vector &S)
+{
+     char compz='V';
+     long N=D.N;
+     double *z=B.D+1;
+     long ldz=N;
+     double *work=(double*)malloc(2*(N-1)*sizeof(double)); 
+     long info;
+     dsteqr_(&compz,&N,D.D+1,S.D+1,z,&ldz,work,&info);
+     free(work);
 }

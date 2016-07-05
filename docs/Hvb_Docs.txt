@@ -88,6 +88,11 @@ The Hvb package depend on the following libraries:
 - Xlib, for graphics under X-Window system
 - Imlib2, for image manipulation.
 
+How to ensure that you have those libraries? For example, on Ubuntu,
+you should run
+
+sudo apt-get install libblas-dev libblas3 liblapack-dev liblapack3 libX11-dev libImlib2-dev
+
 If you want to run Hvb in a system without graphics capabilities,
 remove the files EX.* and Image.*.
 
@@ -643,6 +648,21 @@ List Substract(const List &L1, const List &L2);
      Return the List L1, from which all entries of L2 have been
      substracted.
 
+List List_Ones(long X); // returns the list of positions of the 1's in X
+     Returns the List of bit-positions of the 1's in the expansion of
+     X. For example, List_Ones(3)={0,1}.     
+
+List Bin_2_List(long X, int maxbit=0); // conversion of a binary to a list
+long List_2_Bin(const List &L);
+     Returns the binary expression for X in a List, up to bit-position maxbit.
+     Example: Bin_2_List(3,4)={1,1,0,0,0}. List_2_Bin is the inverse.
+
+List Int_2_List(long ix, const List &Ls);
+long List_2_Int(const List &X, const List &Ls);
+     Converts integer ix to the number-basis given by list Ls. If Ls
+     is all 2's, then it is the binary expansion. If it is all 5's,
+     then in basis 5. It can be mixed. 
+     
 List Random_Permutation(long N); 
      Returns a random permutation of the elements 1 to N.
 
@@ -1065,10 +1085,19 @@ double Sum(long p, long q) const;
        Return the sum of the elements from p to q (included). If no
        bounds are given, the complete sum.
 
+double Prod() const;
+double Prod(long p, long q) const;
+       Returns the product of the elements from p to q (included). If
+       no bounds are given, the complete sum.
+
 double Average() const;
 double Deviation() const;
 double Variance() const;
-       Returns the average / deviation / variance.
+double Moment(double p) const;
+double Skewness() const;
+double Kurtosis() const;      
+       Returns the average / deviation / variance / moment of order p /
+       skewness or kurtosis.       
 
 bool   Is_Zero(double tolerance) const;
        Find out whether the Vector is Zero up to a given
@@ -1199,6 +1228,9 @@ double Sum(const Vector& V);
 double Average(const Vector& V);
 double Deviation(const Vector& V);
 double Variance(const Vector& V);
+double Moment(const Vector &V, double p);
+double Skewness(const Vector &V);
+double Kurtosis(const Vector &V);
        These functions return the norm, the maximal or minimal value,
        the sum of all elements, the average, standard deviation or
        variance of the elements of the Vector.
@@ -1599,7 +1631,6 @@ Matrix Projector(const Vector& V);
        Returns the projector on the subspace spanned by V, |V><V|, V(i)
        V(j). 
 
-// Sort V and swap columns of M accordingly
 void   Sort(Vector& V, Matrix& M);
        Sort the elements of V, and swap accordingly the columns of
        M. Useful, for example, to sort eigenvalues and eigenvectors at
@@ -1636,8 +1667,24 @@ Matrix Sqr(const Matrix& M);
 Matrix To_Matrix(const Table& T);
        Converts a Table to a Matrix by upgrading each long to a double.
 
-Table To_Table(const Matrix& M);
+Table  To_Table(const Matrix& M);
        Rounds each element of Matrix M and puts it into a Table.
+
+void   Trid_Spectrum(Vector &D, Vector &S);
+       Find the spectrum of a symmetric tridiagonal matrix whose
+       diagonal is D and secondary diagonal is S. The spectrum comes
+       out in D, and S is destroyed. Notice that if the secondary
+       diagonal were complex, the spectrum is unperturbed: we can
+       take the modulus of each entry. 
+
+void   Trid_Diagonalize(Matrix &B, Vector &D, Vector &S);
+       Diagonalize a symmetric tridiagonal matrix whose diagonal is D
+       and secondary diagonal is S. The spectrum comes out in D, S is
+       destroyed and the basis is in B, which must be initialized to
+       the unit matrix. If the secondary diagonal is complex, there is
+       a trick which allows you still to use this routine: a
+       similarity transformation with a diagonal matrix with only
+       phases. 
 
 
 - Complex linear algebra
@@ -1672,8 +1719,8 @@ Vector  Sqr(const VectorC& V);
 void    Zaxpy(VectorC &R, const VectorC &V, cmplx alpha);
 	R+=alpha*V;
 
-VectorC Complex(const Vector& V);
-VectorC Complex(const Vector& Re, const VectorC& Im);
+VectorC Cmplx(const Vector& V);
+VectorC Cmplx(const Vector& Re, const VectorC& Im);
 	Build a VectorC, either only from the real part, or from the
 	real and imaginary parts.
 
@@ -1682,9 +1729,11 @@ Class MatrixC, besides all those, also has a few extra methods:
 void   Herm();
        As a method, get the hermitean conjugate.
 
-void   SVD(MatrixC &BL, MatrixC &BR, Vector &Sigma) const;
-       Singular value decomposition of the current MatrixC, with left
-       basis BL, right basis BR, and singular values Sigma.
+void   SVD(MatrixC &U, MatrixC &V, Vector &Sigma) const;
+       Singular value decomposition of the current MatrixC, with
+       singular values Sigma. The original MatrixC is
+       U*Diag_C(Sigma)*V. The left basis are the columns of U, and the
+       right basis are the rows of V.
 
 As external functions:
 
@@ -2107,7 +2156,7 @@ void   Destroy();
 
 long   Get_Line(FILE* f); 
        Read a line from file f, the return value is the number of read
-       characters. If return is 0, we have reached end of file. If
+       characters. If return is -2, we have reached end of file. If
        return is -1, there was an error.
 
 void   Write();
@@ -2231,7 +2280,8 @@ void    EX_Start();
 	Open the connection to the X server. It creates the EX_Info
 	global object, which specifies the display, screen, root
 	window, graphics context, visual depth, colormap and
-	font. The user does not need to know about them.
+	font. Also, the black and white pixel indices. The final user
+	does not need to know about them. 
 
 EX_Window* EX_Start(int x, int y, int width, int height);
 	Open the connection to the X server and create a simple
