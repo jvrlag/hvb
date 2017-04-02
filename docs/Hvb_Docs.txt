@@ -327,10 +327,6 @@ double Rand_Gaussian(double mu, double sigma);
        Returns a Gaussian deviate with average mu and deviation
        sigma. Obtained with the Box-Muller algorithm.
 
-long   Choose_One(const Vector &P);
-       If vector P has N components, returns a number from 1 to N,
-       with probability P(i).
-
 - Binary numbers
 
 long  Pow_2(long n);
