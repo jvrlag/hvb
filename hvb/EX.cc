@@ -28,6 +28,8 @@ void EX_Start()
      EX_Info.visual=DefaultVisual(EX_Info.display,EX_Info.screen);
      EX_Info.depth=DefaultDepth(EX_Info.display,EX_Info.screen);
      EX_Info.colormap=DefaultColormap(EX_Info.display,EX_Info.screen);
+     EX_Info.black=BlackPixel(EX_Info.display,EX_Info.screen);
+     EX_Info.white=WhitePixel(EX_Info.display,EX_Info.screen);
 }
 
 EX_Window* EX_Create_Window(int x, int y, int width, int height)
@@ -279,18 +281,17 @@ void EX_Clear()
      {
 	  XWindowAttributes wa;
 	  XGetWindowAttributes(EX_Info.display, EX_CW->window, &wa);
-	  XSetForeground(EX_Info.display, EX_Info.gc, 
-			 BlackPixelOfScreen(DefaultScreenOfDisplay(EX_Info.display)));
+	  XSetForeground(EX_Info.display, EX_Info.gc, EX_Info.black);
 	  XFillRectangle(EX_Info.display, EX_CW->buffer, EX_Info.gc, 
 			 0, 0, wa.width, wa.height);
-	  XSetForeground(EX_Info.display, EX_Info.gc, 
-			 WhitePixelOfScreen(DefaultScreenOfDisplay(EX_Info.display)));
+	  XSetForeground(EX_Info.display, EX_Info.gc, EX_Info.white);
      }
 }
 
 void EX_Set_Line_Width(int lw)
 {
-     XSetLineAttributes(EX_Info.display,EX_Info.gc,lw,LineSolid,CapNotLast,JoinMiter);
+     XSetLineAttributes(EX_Info.display,EX_Info.gc,lw,
+			LineSolid,CapNotLast,JoinMiter);
 }
 
 // Maybe the interface is not as efficient as it should...
@@ -573,6 +574,7 @@ void EX_Mode(int mode)
      XGCValues xgcvalues;
      xgcvalues.function=mode;
      XChangeGC(EX_Info.display,EX_Info.gc,GCFunction,&xgcvalues);
+//     XFlushGC(EX_Info.display,EX_Info.gc);
 }
 
 void EX_Mode_Or()

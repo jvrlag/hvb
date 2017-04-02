@@ -34,6 +34,7 @@ public:
      Text& operator=(const char*);
 
      void Strip_Blanks();
+     bool Empty() const;
 
      bool Is_Here(const char *);
      bool Is_Here(const Text &);

@@ -22,23 +22,25 @@ double Trapezoid_Sum(Func_RR &F, double a, double b, long n)
 
 double Integrate(Func_RR &F, double a, double b, double tol)
 {
-     static long jmax=40;
+     static long jmax=22; // 2^{22} points is enough, right?
      if (fabs(a-b)<1e-20) return 0.0;
 
      double sum=Trapezoid_Sum(F,a,b,1);
      double sum_old=sum;
      double S_old=sum;
+     double S;
      for (long j=2;j<=jmax;j++) 
      {
 	  sum=0.5*(sum+Trapezoid_Sum(F,a,b,j));
-	  double S=(4.0*sum-sum_old)/3.0;
+	  S=(4.0*sum-sum_old)/3.0;
 	  if (fabs(S-S_old) < tol*fabs(S_old)) 
 	       return S;
 	  S_old=S;
 	  sum_old=sum;
      }
-     printf("Integrator has failed, too low dx is needed!\n");
-     return 0.0;
+     Error_Flag(Error_Mat);
+     // printf("# Integrator has failed, too low dx is needed!\n");
+     return S;
 }
 
 double Integrate(double(*f)(double,void*), void* P,
@@ -50,7 +52,7 @@ double Integrate(double(*f)(double,void*), void* P,
 
 double Integrate_To_Inf(Func_RR &F, double a, double tol1, double tol2)
 {
-     static long jmax=40;
+     static long jmax=22; // 2^{22} points is enough
      static double fx=1.5;
      double l=1.0, x0=a;
      double S_old=0.0, S=0.0;
@@ -62,8 +64,9 @@ double Integrate_To_Inf(Func_RR &F, double a, double tol1, double tol2)
 	  x0=x0+l;
 	  l*=fx;
      }
-     printf("Integrator has failed, too long L is needed!\n");
-     return 0.0;
+     Error_Flag(Error_Mat);
+     // printf("# Integrator has failed, too long L is needed!\n");
+     return S;
 }
 
 double Integrate_To_Inf(double(*f)(double,void*),void* P,

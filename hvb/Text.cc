@@ -62,7 +62,7 @@ long Text::Get_Line(FILE *fich)
      if (Nr==-1)  // smth went wrong, EOF or other thing
      { 
 	  free(z); 
-	  if (feof(fich)) return 0;  // plain EOF, no big deal
+	  if (feof(fich)) return -2;  // plain EOF, no big deal
 	  Error_Flag(Error_IO); // something worse
 	  return -1; 
      }
@@ -72,7 +72,7 @@ long Text::Get_Line(FILE *fich)
  
 void Text::Write() const
 {
-     if (!D) printf("Null Text\n");
+     if (!D) { printf("Null Text\n"); return; }
      printf("%s\n",D);
 }
 
@@ -207,6 +207,15 @@ void Text::Strip_Blanks()
      D=z;
      N=n;
 }
+
+bool Text::Empty() const
+{
+     for (long i=0;i<N;i++)
+	  if (D[i]!=' ' && D[i]!='\t' && D[i]!=0) 
+	       return false;
+     return true;
+}
+
 
 void Text::Append(const char q)
 {
@@ -366,8 +375,8 @@ Text Text::Get_Field(long n) const
      }
      for (j=i;j<N;j++)
      {
-          bool spacing=Is_Space(D[i]);
-          if (spacing) break;
+          bool spacing=Is_Space(D[j]);
+          if (spacing) { j--; break; }
      }
      return Part(i,j);
 }

@@ -21,6 +21,7 @@ typedef struct
      GC gc;
      XFontStruct *font;
      Colormap colormap;
+     long black, white;
 } EX_Info_Type;
 
 typedef struct

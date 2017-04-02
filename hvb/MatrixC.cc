@@ -1425,8 +1425,8 @@ void MatrixC::NH_Diagonalize(MatrixC &B, VectorC &E) const
      if (N1!=N2) Error("Can't NH_Diagonalize non-square matrix.");
 #endif
      
-     char jobl='V';
-     char jobr='N';
+     char jobl='N';
+     char jobr='V';
      long N=N1;
      cmplx *A=(cmplx*)malloc(N*N*sizeof(cmplx));
      memcpy(A,D+1,N*N*sizeof(cmplx));
@@ -1434,10 +1434,10 @@ void MatrixC::NH_Diagonalize(MatrixC &B, VectorC &E) const
      E.Create(N); 
      B.Create(N); 
      cmplx* w=E.D+1;
-     cmplx* vl=B.D+1;
-     long ldvl=N;
-     cmplx* vr=(cmplx*)NULL;
-     long ldvr=1;
+     cmplx* vr=B.D+1;
+     long ldvr=N;
+     cmplx* vl=(cmplx*)NULL;
+     long ldvl=1;
      long lwork=6*N;
      cmplx* work=(cmplx*)malloc(lwork*sizeof(cmplx));
      double *rwork=(double*)malloc(2*N*sizeof(double));
@@ -2265,4 +2265,3 @@ MatrixC Cmplx(const Matrix &R, const Matrix &I)
 	       A(i,j)=(cmplx)R(i,j)+M_I*(cmplx)I(i,j);
      return A;
 }
-

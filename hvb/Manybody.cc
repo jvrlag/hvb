@@ -128,39 +128,48 @@ MatrixC Trace_On(const MatrixC &Rho, const List &Lsites)
 // dimensions in Ldim
 MatrixC Trace_On(const MatrixC &Rho, const List &Ls1, const List &Ldim)
 {
-     long l=Ldim.N; // l1=Ls1.N; // l2=l-l1;
+     long l=Ldim.N;  // long l1=Ls1.N;  long l2=l-l1;
      // Find the dimension of the resulting Hilbert space
      List Ldim1=Combine(Ls1,Ldim);
-     List Ls=List_Range(1,l);
+     List Ls=List_Range(l,1);
      List Ls2=Substract(Ls,Ls1);
+     Ls2.Sort(+1);
      List Ldim2=Combine(Ls2,Ldim);
      long N1=Ldim1.Prod();
      long N=Ldim.Prod(); long N2=N/N1;
 
      MatrixC R(N1);
      for (long i1=1;i1<=N1;i1++)
+     {
+	  List I1=Int_2_List(i1-1,Ldim1);
 	  for (long j1=1;j1<=N1;j1++)
+	  {
+	       List J1=Int_2_List(j1-1,Ldim1);
 	       for (long k2=1;k2<=N2;k2++)
 	       {
-		    List I1=Int_2_List(i1-1,Ldim1);
-		    List J1=Int_2_List(j1-1,Ldim1);
 		    List K2=Int_2_List(k2-1,Ldim2);
 		    List I(l), J(l);
 		    for (long p=1;p<=l;p++)
-			 if (Ls1.Find(p)) 
+		    {
+			 long idx=Ls1.Find(p);
+			 if (idx) 
 			 {
-			      I(p)=I1(Ls1.Find(p));
-			      J(p)=J1(Ls1.Find(p));
+			      I(l+1-p)=I1(idx);
+			      J(l+1-p)=J1(idx);
 			 }
 			 else 
 			 {
-			      I(p)=K2(Ls2.Find(p));
-			      J(p)=K2(Ls2.Find(p));
+			      idx=Ls2.Find(p);
+			      I(l+1-p)=K2(idx);
+			      J(l+1-p)=K2(idx);
 			 }
+		    }
 		    long i=List_2_Int(I,Ldim)+1;
 		    long j=List_2_Int(J,Ldim)+1;
 		    R(i1,j1)+=Rho(i,j);
 	       }
+	  }
+     }
      return R;
 }
 
