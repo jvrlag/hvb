@@ -315,6 +315,21 @@ double Rand_Gaussian(double mean, double dev)
      return mean + dev*(u*a);
 }
 
+// Assuming P.Sum()=1 and P(i)>0, choose i randomly according to P(i)
+long Choose_One(const Vector &P)
+{
+     long N=P.N;
+     Vector F(N);
+     F(1)=P(1);
+     for (long k=2;k<N;k++)
+          F(k)=F(k-1)+P(k); // accumulated probability
+     double r=Rand();
+     long k0=1;
+     for (long k=N-1;k>=1;k--)
+          if (r>F(k)) { k0=k+1; break; }
+     return k0;
+}
+
 ////////////////////////////////////////////////////////
 // Binary numbers as long
 

@@ -96,7 +96,7 @@ double Rand(double a, double b);
 long   Rand_I(long a, long b);
 double Rand_Gaussian(double mu, double sigma);
 void   Rand_Close();
-
+long   Choose_One(const Vector &P);
 
 ////////////////////////////////////////////////////////
 // Binary numbers

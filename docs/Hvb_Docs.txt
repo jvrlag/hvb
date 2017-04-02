@@ -91,7 +91,7 @@ The Hvb package depend on the following libraries:
 How to ensure that you have those libraries? For example, on Ubuntu,
 you should run
 
-sudo apt-get install libblas-dev libblas3 liblapack-dev liblapack3 libX11-dev libImlib2-dev
+sudo apt-get install libblas-dev libblas3 liblapack-dev liblapack3 libx11-dev libimlib2-dev
 
 If you want to run Hvb in a system without graphics capabilities,
 remove the files EX.* and Image.*.
@@ -327,6 +327,9 @@ double Rand_Gaussian(double mu, double sigma);
        Returns a Gaussian deviate with average mu and deviation
        sigma. Obtained with the Box-Muller algorithm.
 
+long   Choose_One(const Vector &P);
+       If vector P has N components, returns a number from 1 to N,
+       with probability P(i).
 
 - Binary numbers
 
