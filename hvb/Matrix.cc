@@ -293,7 +293,7 @@ void Vector::Write(long prec) const
      else sprintf(form,"%%%ld.%ldg ",prec+4,prec);
      for (long i=1;i<=N;i++)
 	  printf(form,D[i]);
-     printf("\n\n");
+     printf("\n");
 }
 
 void Vector::Write_Col() const

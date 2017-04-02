@@ -273,6 +273,16 @@ double Comb(double x, double y);
        Binomial coefficient, using the Gamma function.
 
 
+- Parsing input parameters
+
+void   Input(long &X, const char *P, int argc, char *argv[]);
+       Read a long from the command line, always after string P is
+       found. Example: long N; Input(N,"-N",argc,argv);
+
+void   Input(double &X, const char *P, int argc, char *argv[]);
+       Same with a double.
+       
+
 - Time handling
 
 double Clock(); 
@@ -303,17 +313,17 @@ void Rand_Close();
        Releases the space allocated in memory by the random number
        generator. 
 
-void Rand(double a, double b);
+double Rand(double a, double b);
        Returns a uniform deviate in the interval [a,b].
 
-void Rand();
+double Rand();
        Returns a uniform deviate in [0,1].
 
-void Rand_I(long a, long b);
+long Rand_I(long a, long b);
        Returns an random integer value from a to b, both included,
        with equal probabilities.
 
-void Rand_Gaussian(double mu, double sigma);
+double Rand_Gaussian(double mu, double sigma);
        Returns a Gaussian deviate with average mu and deviation
        sigma. Obtained with the Box-Muller algorithm.
 
@@ -370,7 +380,7 @@ void Error(char* message);
      is defined as no-inline, so it can always be used as a breakpoint
      for debugging.
 
-void Error_Flag(Error_Flag E)
+void Error_Flag(Error_Flag E);
      A non-fatal error has shown up, send flag to the List.
 
 Error_Type Error_Read();
@@ -449,8 +459,8 @@ void Set_Part(const List& L, long p);
      Put List at site p, overwriting
 
 void Remove(long i, long j=0);  
-     Remove from position i to j; if no j is given, then until the end
-     of the List
+     Remove from position i to j; if no j is given, then remove only
+     site i.
 
 long Substract(long p);    
      Eliminates all occurrences of p
@@ -2189,6 +2199,9 @@ Text&  operator=(const char *);
 
 void   Strip_Blanks();
        Strip the blanks at the beginning and end of the Text.
+
+bool   Empty() const;
+       Returns true if it contains only blanks and tabs.
 
 bool   Is_Here(const char *S);
 bool   Is_Here(const Text &S);

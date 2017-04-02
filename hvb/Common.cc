@@ -131,6 +131,22 @@ double Comb(double x, double y)
 }
 
 ////////////////////////////////////////////////////////
+// Reading input parameters
+////////////////////////////////////////////////////////
+void Input(long &a, const char *P, int argc, char *argv[]) 
+{ 
+     for (long i=1;i<argc-1;i++)
+	  if (!strcmp(argv[i],P)) a=(long)atol(argv[i+1]);
+}
+
+void Input(double &a, const char *P, int argc, char *argv[]) 
+{ 
+     for (long i=1;i<argc-1;i++)
+	  if (!strcmp(argv[i],P)) a=(double)atof(argv[i+1]);
+}
+
+
+////////////////////////////////////////////////////////
 // Error handling
 ////////////////////////////////////////////////////////
 
