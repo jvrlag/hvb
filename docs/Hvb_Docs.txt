@@ -2008,7 +2008,7 @@ bool Add_Link(long i, long j);
      Add a link between sites i and j.
 
 void Remove_Site(long p); 
-     Remove site p.
+     Remove site p, rename sites with indices >=p correspondingly.
 
 void Remove_Sites(const List &L);
      Remove all sites in List L.

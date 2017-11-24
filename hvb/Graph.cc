@@ -116,12 +116,18 @@ void Graph::Remove_Site(long s)
      {
 	  V[i].D=V[i+1].D;
 	  V[i].N=V[i+1].N;
+	  for (long k=1;k<=V[i].N;k++)
+	       if (V[i](k)>s) V[i](k)--;
      }
      V=(List*)realloc(V,N*sizeof(List));
+     N--;
+
 }
 
 void Graph::Remove_Sites(const List &L)
 {
+     List L2(L);
+     L2.Sort(-1);
      for (long k=1;k<=L.N;k++)
 	  Remove_Site(L(k));
 }
@@ -132,10 +138,12 @@ void Graph::Remove_Link(long s1, long s2)
      V[s1].Substract(s2);
      if (!directed)
 	  V[s2].Substract(s1);
+     Nl--;
+//     Update_Index();
      long index=Link_Index(s1,s2);
      I1.Remove(index);
      I2.Remove(index);
-     Nl--;
+
 }
 
 void Graph::Remove_Link(long l)

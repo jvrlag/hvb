@@ -28,7 +28,7 @@ double Von_Neumann(const MatrixC &Rho);
 double Renyi(const MatrixC &Rho, double alpha);
 
 MatrixC Total_Number_Op(long L);
-MatrixC Heisenberg_Ham(const Graph &G, const Vector &J, long s);
+MatrixC Heisenberg_Ham(const Graph &G, const Vector &Delta, long s);
 MatrixC ITF_Ham(const Graph &G, const Vector &J, double Gamma, long s);
 
 #endif

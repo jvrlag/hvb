@@ -217,8 +217,8 @@ MatrixC ITF_Ham(const Graph &G, const Vector &J, double Gamma, long s)
 {
      long N=G.N; long Nl=G.Nl;
      MatrixC Ham;
-     MatrixC Sz=Spin_Op(s,0);
-     MatrixC Sx=Sx_Op(s);
+     MatrixC Sz=2*Spin_Op(s,0);
+     MatrixC Sx=2*Sx_Op(s);
 
      List Ldim(N); Ldim.Set(s);
      for (long k=1;k<=Nl;k++)
@@ -240,7 +240,7 @@ MatrixC ITF_Ham(const Graph &G, const Vector &J, double Gamma, long s)
 
 // Heisenberg hamiltonian with graph G and couplings J
 // s is the spin multiplicity
-MatrixC Heisenberg_Ham(const Graph &G, const Vector &J, long s)
+MatrixC Heisenberg_Ham(const Graph &G, const Vector &Delta, long s)
 {
      long N=G.N; long Nl=G.Nl;
      MatrixC Ham;
@@ -261,7 +261,7 @@ MatrixC Heisenberg_Ham(const Graph &G, const Vector &J, long s)
 	  MatrixC Spm=Sp1*Sm2;
 	  Sp1.Destroy(); Sm2.Destroy();
 	  Spm+=Herm(Spm);
-	  Ham+=J(k)*( Szz + 0.5*( Spm ));
+	  Ham+=( Delta(k)*Szz + 0.5*( Spm ));
      }
      return Ham;
 }
