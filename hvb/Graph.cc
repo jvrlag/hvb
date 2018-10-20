@@ -116,9 +116,11 @@ void Graph::Remove_Site(long s)
      {
 	  V[i].D=V[i+1].D;
 	  V[i].N=V[i+1].N;
+     }
+     for (long i=1;i<N;i++)
 	  for (long k=1;k<=V[i].N;k++)
 	       if (V[i](k)>s) V[i](k)--;
-     }
+     
      V=(List*)realloc(V,N*sizeof(List));
      N--;
 

@@ -439,6 +439,24 @@ void VectorC::operator&=(const VectorC &L)
      Append(L);
 }
 
+cmplx VectorC::Sum() const
+{
+     return Sum(1,N);
+}
+
+cmplx VectorC::Sum(long i1, long i2) const
+{
+#ifdef DEBUG
+     if (!N) return 0.0;
+     if (i1<=0 || i1>i2 || i2>N) Error("Incorrect sum limits\n");
+#endif
+     cmplx sum=D[i1];
+     for (long i=i1+1;i<=i2;i++)
+	  sum+=D[i];
+     return sum;
+}
+
+
 ///////////////////////////////////////////////////////
 // VectorC: external functions
 ///////////////////////////////////////////////////////
@@ -706,6 +724,11 @@ VectorC Constant(cmplx z, long N)
      return R;
 }
 
+cmplx Sum(const VectorC &V)
+{
+     return V.Sum(1,V.N);
+}
+
 ///////////////////////////////////////////////////////////////
 // MatrixC
 ///////////////////////////////////////////////////////////////
@@ -766,7 +789,7 @@ void MatrixC::Load(cmplx* d, long n1, long n2)
      N2=n2; if (!N2) N2=N1;
      D=d;
 #ifdef DEBUG
-     if (N1*N2) Mem_Control(0,1,2*N1*N2);
+     if (N1 && N2) Mem_Control(0,1,2*N1*N2);
 #endif
 }
 
@@ -793,7 +816,7 @@ void MatrixC::Destroy()
      if (N1) free(D);
      D=(cmplx*)NULL;
 #ifdef DEBUG
-     if (N1*N2) Mem_Control(0,-1,-2*N1*N2);
+     if (N1 && N2) Mem_Control(0,-1,-2*N1*N2);
 #endif
      N1=N2=0;
 }
@@ -1506,7 +1529,7 @@ bool MatrixC::Save_Binary(FILE *fich) const
      { 
 	  Error_Flag(Error_IO); return false; 
      }
-     if (!(N1*N2)) return true;
+     if (!(N1 && N2)) return true;
      nwrite=fwrite(D+1,sizeof(cmplx),N1*N2,fich);
      if (nwrite!=N1*N2) 
      { 
@@ -1537,7 +1560,7 @@ bool MatrixC::Load_Binary(FILE *fich)
      { 
 	  Error_Flag(Error_IO); return false; 
      }
-     if (!(N1*N2)) 
+     if (!(N1 && N2)) 
      { 
 	  D=(cmplx*)NULL; 
 	  return true;
@@ -1975,23 +1998,23 @@ void Multiply(MatrixC &R, const MatrixC &M1, const MatrixC &M2)
 
 // The most general MatrixC-MatrixC product routine
 // R <- alpha*M1*M2 + beta*R
-// M1 is transposed if T1=true
-// M2 is transposed if T2=true
+// if T1=2, M1 is Hermitian; if T1=1, M1 is transposed; if T1=0, nothing
+// if T2=2, M2 is Hermitian; if T2=1, M1 is transposed; if T2=0, nothing
 void Multiply_Add(MatrixC &R, const MatrixC &M1, const MatrixC &M2,
-		  cmplx alpha, cmplx beta, bool T1, bool T2)
+		  cmplx alpha, cmplx beta, int T1, int T2)
 {
-     long n1=(T1 ? M1.N2 : M1.N1), 
-	  n2=(T2 ? M2.N1 : M2.N2), 
-	  k=(T1 ? M1.N1 : M1.N2);
+     long n1=(T1!=0 ? M1.N2 : M1.N1), 
+	  n2=(T2!=0 ? M2.N1 : M2.N2), 
+	  k=(T1!=0 ? M1.N1 : M1.N2);
 #ifdef DEBUG
-     long kk=(T2 ? M2.N2 : M2.N1);
+     long kk=(T2!=0 ? M2.N2 : M2.N1);
      if (k!=kk) Error("Wrong internal dim in Multiply_Add");
      if (R.N1!=n1 || R.N2!=n2) Error("Wrong external dim in Multiply_Add");
 #endif
      if (M1.N1==0 || M1.N2==0 || M2.N1==0 || M2.N2==0)
 	  return;
-     char ca=(T1==true ? 'C' : 'N');
-     char cb=(T2==true ? 'C' : 'N');
+     char ca=(T1==0 ? 'N' : (T1==1 ? 'T' : 'C'));
+     char cb=(T2==0 ? 'N' : (T2==1 ? 'T' : 'C'));
      long N1=M1.N1;
      long N2=M2.N1;
      zgemm_(&ca,&cb,&n1,&n2,&k,&alpha,M1.D+1,&N1,M2.D+1,&N2,&beta,R.D+1,&n1);

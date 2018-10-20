@@ -1763,7 +1763,7 @@ bool Table::Save_Binary(FILE *fich) const
      if (nwrite!=1) { Error_Flag(Error_IO); return false; }
      nwrite=fwrite(&N2,sizeof(long),1,fich);
      if (nwrite!=1) { Error_Flag(Error_IO); return false; }
-     if (!(N1*N2)) return true;
+     if (!(N1 && N2)) return true;
      nwrite=fwrite(D+1,sizeof(long),N1*N2,fich);
      if (nwrite!=N1*N2) { Error_Flag(Error_IO); return false;}
      if (ferror(fich)) return false;
@@ -1782,7 +1782,7 @@ bool Table::Load_Binary(FILE *fich)
      { 
 	  Error_Flag(Error_IO); return false; 
      }
-     if (!(N1*N2)) 
+     if (!(N1 && N2)) 
      { 
 	  D=(long*)NULL; 
 	  return true;

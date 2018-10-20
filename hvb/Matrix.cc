@@ -1021,7 +1021,7 @@ void Matrix::Destroy()
      if (N1) free(D);
      D=NULL;
 #ifdef DEBUG
-     if (N1*N2) Mem_Control(0,-1,N1*N2);
+     if (N1 && N2) Mem_Control(0,-1,N1*N2);
 #endif
      N1=N2=0;
 }
@@ -1761,7 +1761,7 @@ bool Matrix::Save_Binary(FILE *fich) const
      if (nwrite!=1) { Error_Flag(Error_IO); return false; }
      nwrite=fwrite(&N2,sizeof(long),1,fich);
      if (nwrite!=1) { Error_Flag(Error_IO); return false; }
-     if (!(N1*N2)) return true;
+     if (!(N1 && N2)) return true;
      nwrite=fwrite(D+1,sizeof(double),N1*N2,fich);
      if (nwrite!=N1*N2) { Error_Flag(Error_IO); return false;}
      if (ferror(fich)) return false;
@@ -1789,7 +1789,7 @@ bool Matrix::Load_Binary(FILE *fich)
      { 
 	  Error_Flag(Error_IO); return false; 
      }
-     if (!(N1*N2)) 
+     if (!(N1 && N2)) 
      { 
 	  D=(double*)NULL; 
 	  return true;

@@ -106,7 +106,7 @@ long  Log_2(long num);
 bool  Bit(long X, long pos);
 long  Max_Bit(long X);
 long  Flip_Bit(long X, long pos); 
-long  Put_Bit(long X, long pos, long value);
+long  Set_Bit(long X, long pos, long value);
 long  Swap_Bits(long X, long pos1, long pos2);
 long  Reverse_Bits(long X, long maxbit=0);
 long  Insert_Bit(long X, long pos, long value);

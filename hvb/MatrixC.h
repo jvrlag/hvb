@@ -74,6 +74,9 @@ public:
 
      void operator&=(const VectorC &);
      void operator&=(cmplx);
+
+     cmplx Sum() const;
+     cmplx Sum(long i1, long i2) const;
 }; 
 
 void Copy(VectorC& B, const VectorC& A);
@@ -111,6 +114,8 @@ VectorC Conj(const VectorC &V);
 VectorC Cmplx(const Vector &V);
 VectorC Cmplx(const Vector &V1, const Vector &V2);
 VectorC Constant(cmplx z, long N);
+
+cmplx   Sum(const VectorC &V);
 
 /////////////////////////////////////////////////////////////////////////
 // Class matrix:
@@ -249,7 +254,7 @@ MatrixC operator&(const MatrixC &, const MatrixC &);
 void Multiply(VectorC &, const MatrixC &M, const VectorC &V);
 void Multiply(MatrixC &, const MatrixC &M1, const MatrixC &M2);
 void Multiply_Add(MatrixC &, const MatrixC &M1, const MatrixC &M2,
-		  cmplx alpha, cmplx beta, bool T1, bool T2);
+		  cmplx alpha, cmplx beta, int T1, int T2);
 
 MatrixC Tens_Prod(const MatrixC &, const MatrixC &);
 void    Tens_Prod(MatrixC &, const MatrixC &, const MatrixC &);
