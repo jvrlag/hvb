@@ -1272,12 +1272,13 @@ void transpose_matrix(const double *src, double *dst,
 	       long i_max=(i+BLOCK_SIZE<rows) ? i+BLOCK_SIZE : rows;
 	       long j_max=(j+BLOCK_SIZE<cols) ? j+BLOCK_SIZE : cols;
             
-	       for (long r=i;r<i_max;++r)
+	       for (long r=i;r<i_max;r++)
 	       {
-		    for (long c=j;c<j_max;++c)
+		    for (long c=j;c<j_max;c++)
 		    {
-                          // Row-major source -> Column-major destination
-			 dst[r+c*rows+1] = src[r*cols+c+1];
+                          // Row-major source -> Column-major dest
+			 dst[r*cols+c+1]=src[c*rows+r+1];
+//			 dst[r+c*rows+1] = src[r*cols+c+1];
 		    }
 	       }
 	  }
