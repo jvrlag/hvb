@@ -189,7 +189,8 @@ public:
      bool  Solve(VectorC &) const;
      bool  Solve(MatrixC &) const;
      cmplx Det() const; 
-     cmplx Trace() const; 
+     cmplx Trace() const;
+     cmplx Sum() const;
      void  Diagonalize(MatrixC &,Vector &) const; 
      void  Spectrum(Vector &) const;
      void  Tridiagonalize(MatrixC &, VectorC &, VectorC &) const;
@@ -279,6 +280,7 @@ VectorC Solve(const MatrixC &A, const VectorC &b);
 cmplx   Det(const MatrixC &M);
 cmplx   Trace(const MatrixC &M);
 double  Norm(const MatrixC &M);
+cmplx   Sum(const MatrixC &M);
 
 Matrix  Re(const MatrixC &M);
 Matrix  Im(const MatrixC &M);

@@ -128,13 +128,25 @@ MatrixC Trace_On(const MatrixC &Rho, const List &Lsites)
 // dimensions in Ldim
 MatrixC Trace_On(const MatrixC &Rho, const List &Ls1, const List &Ldim)
 {
+     // printf("Trace On. Ls1: ");
+     // Ls1.Write();
+     // printf("Ldim: ");
+     // Ldim.Write();
      long l=Ldim.N;  // long l1=Ls1.N;  long l2=l-l1;
      // Find the dimension of the resulting Hilbert space
      List Ldim1=Combine(Ls1,Ldim);
-     List Ls=List_Range(l,1);
+     // printf("Ldim1: ");
+     // Ldim1.Write();
+     List Ls=List_Range(1,l);
+     // printf("Ls: ");
+     // Ls.Write();
      List Ls2=Substract(Ls,Ls1);
      Ls2.Sort(+1);
+     // printf("Ls2: ");
+     // Ls2.Write();
      List Ldim2=Combine(Ls2,Ldim);
+     // printf("Ldim2: ");
+     // Ldim2.Write();
      long N1=Ldim1.Prod();
      long N=Ldim.Prod(); long N2=N/N1;
 
@@ -172,6 +184,64 @@ MatrixC Trace_On(const MatrixC &Rho, const List &Ls1, const List &Ldim)
      }
      return R;
 }
+
+// Spin 1/2 system, trace |Psi><Psi| on the sites in list L
+MatrixC Trace_On(const VectorC &Psi, const List &Lsites)
+{
+     long Lt=Log_2(Psi.N); 
+     List Ldim(Lt); Ldim.Set(2);
+     return Trace_On(Psi,Lsites,Ldim);
+}
+
+// General spin system, trace |Psi><Psi| on the sites in list L1, they have
+// dimensions in Ldim
+MatrixC Trace_On(const VectorC &Psi, const List &Ls1, const List &Ldim)
+{
+     long l=Ldim.N;  // long l1=Ls1.N;  long l2=l-l1;
+     // Find the dimension of the resulting Hilbert space
+     List Ldim1=Combine(Ls1,Ldim);
+     List Ls=List_Range(1,l);
+     List Ls2=Substract(Ls,Ls1);
+     Ls2.Sort(+1);
+     List Ldim2=Combine(Ls2,Ldim);
+     long N1=Ldim1.Prod();
+     long N=Ldim.Prod(); long N2=N/N1;
+
+     MatrixC R(N1);
+     for (long i1=1;i1<=N1;i1++)
+     {
+	  List I1=Int_2_List(i1-1,Ldim1);
+	  for (long j1=1;j1<=N1;j1++)
+	  {
+	       List J1=Int_2_List(j1-1,Ldim1);
+	       for (long k2=1;k2<=N2;k2++)
+	       {
+		    List K2=Int_2_List(k2-1,Ldim2);
+		    List I(l), J(l);
+		    for (long p=1;p<=l;p++)
+		    {
+			 long idx=Ls1.Find(p);
+			 if (idx) 
+			 {
+			      I(l+1-p)=I1(idx);
+			      J(l+1-p)=J1(idx);
+			 }
+			 else 
+			 {
+			      idx=Ls2.Find(p);
+			      I(l+1-p)=K2(idx);
+			      J(l+1-p)=K2(idx);
+			 }
+		    }
+		    long i=List_2_Int(I,Ldim)+1;
+		    long j=List_2_Int(J,Ldim)+1;
+		    R(i1,j1)+=conj(Psi(i))*Psi(j);
+	       }
+	  }
+     }
+     return R;
+}
+
 
 double Shannon(const Vector &V)
 {

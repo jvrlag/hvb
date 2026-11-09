@@ -574,12 +574,15 @@ Graph Square_Graph(long lx, long ly)
      long N=lx*ly;
      Graph G(N);
     
-     // graph index: (x-1)*Ly+y+1
+     // graph index: (y-1)*Lx+x
      for (long x=1;x<=lx;x++)
          for (long y=1;y<=ly;y++)
 	 {
-	      if (x>1) G.Add_Link((x-1)*ly+y,(x-2)*ly+y);
-	      if (y>1) G.Add_Link((x-1)*ly+y,(x-1)*ly+y-1);
+	      long I=(y-1)*lx+x;
+	      if (x<lx) G.Add_Link(I,I+1);
+	      if (y<ly) G.Add_Link(I,I+lx);
+//	      if (x>1) G.Add_Link((x-1)*ly+y,(x-2)*ly+y);
+//	      if (y>1) G.Add_Link((x-1)*ly+y,(x-1)*ly+y-1);
 	 }
 //     G.Update_Index();
      return G;
@@ -594,12 +597,11 @@ Graph Square_Graph_PBC(long lx, long ly)
      for (long x=1;x<=lx;x++)
          for (long y=1;y<=ly;y++)
 	 {
-	      if (x>1) G.Add_Link((x-1)*ly+y,(x-2)*ly+y);
-	      else G.Add_Link((x-1)*ly+y,(ly-1)*ly+y);
-	      
-	      if (y>1) G.Add_Link((x-1)*ly+y,(x-1)*ly+y-1);
-	      else G.Add_Link((x-1)*ly+y,(x-1)*ly+ly);
-	     
+	      long I=(y-1)*lx+x;
+	      if (x<lx) G.Add_Link(I,I+1);
+	      else G.Add_Link(I,I-lx+1);
+	      if (y<ly) G.Add_Link(I,I+lx);
+	      else G.Add_Link(I,x);
 	 }
 //     G.Update_Index();
      return G;

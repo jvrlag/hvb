@@ -21,6 +21,8 @@ MatrixC Ferm_Site_Op_2(const MatrixC &C, long i, long L); // fermionic
 
 MatrixC Trace_On(const MatrixC &Rho, const List &Lsites);
 MatrixC Trace_On(const MatrixC &Rho, const List &Ls1, const List &Ldim);
+MatrixC Trace_On(const VectorC &Psi, const List &Lsites);
+MatrixC Trace_On(const VectorC &Psi, const List &Ls1, const List &Ldim);
 
 double Shannon(const Vector &V);
 double Renyi(const Vector &V, double alpha);

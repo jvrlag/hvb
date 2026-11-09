@@ -246,7 +246,7 @@ double CG_Optimize(Vector &X,double(*f)(const Vector&,void*),void *p,
 
 double CG_Optimize(Vector &X, Func_VR &F, double tol)
 {
-     static long itmax=300;
+     static long itmax=5000;
      static double epsilon=1e-10;
      long N=X.N;
      

@@ -1259,20 +1259,62 @@ void Matrix::Sort_Cols(const Vector &V) // CAUTION: V is invariant!
      Transfer(A);
 }
 
+// Low-level transposing a matrix, expressed as a long vector
+void transpose_matrix(const double *src, double *dst,
+		      long rows, long cols)
+{
+     static long BLOCK_SIZE=64;
+     for (long i=0;i<rows;i+=BLOCK_SIZE)
+     {
+	  for (long j=0;j<cols;j+=BLOCK_SIZE)
+	  {
+	       // Cache-friendly tiling
+	       long i_max=(i+BLOCK_SIZE<rows) ? i+BLOCK_SIZE : rows;
+	       long j_max=(j+BLOCK_SIZE<cols) ? j+BLOCK_SIZE : cols;
+            
+	       for (long r=i;r<i_max;++r)
+	       {
+		    for (long c=j;c<j_max;++c)
+		    {
+                          // Row-major source -> Column-major destination
+			 dst[r+c*rows+1] = src[r*cols+c+1];
+		    }
+	       }
+	  }
+     }
+}
+
+Matrix T(const Matrix &M)
+{
+     double *dest=(double*)malloc((M.N1*M.N2+1)*sizeof(double));
+     transpose_matrix(M.D,dest,M.N1,M.N2);
+     Matrix B; B.Load(dest,M.N2,M.N1);
+     return B;
+}
+
 void Matrix::T()
 {
-     long n1=N1, n2=N2;
-     if (n1!=n2)
-     {
-	  long N=::Max(n1,n2);
-	  Resize(N);
-     }
-     for (long i=1;i<=N1;i++)
-	  for (long j=i+1;j<=N2;j++)
-	       Swap(Elem(i,j),Elem(j,i));
-     if (n1!=n2)
-	  Part(1,1,n2,n1);
+     double *dest=(double*)malloc((N1*N2+1)*sizeof(double));
+     transpose_matrix(D,dest,N1,N2);
+     Swap(N1,N2);
+     free(D);
+     D=dest;
 }
+
+// void Matrix::T()
+// {
+//      long n1=N1, n2=N2;
+//      if (n1!=n2)
+//      {
+// 	  long N=::Max(n1,n2);
+// 	  Resize(N);
+//      }
+//      for (long i=1;i<=N1;i++)
+// 	  for (long j=i+1;j<=N2;j++)
+// 	       Swap(Elem(i,j),Elem(j,i));
+//      if (n1!=n2)
+// 	  Part(1,1,n2,n1);
+// }
 
 void Matrix::Part(long n10, long n20, long n1f, long n2f)
 {
@@ -1616,6 +1658,16 @@ double Matrix::Trace() const
      return result;
 }
 
+double Matrix::Sum() const
+{
+     double result=0.0;
+     for (long i=1;i<=N1;i++)
+	  for (long j=1;j<=N2;j++)
+	       result+=Elem(i,j);
+     return result;
+}
+
+
 // Full diagonalization: all eigenvalues, all eigenvectors
 // Symmetric matrix.
 // NOT OPTIMAL: matrix is preserved 
@@ -1741,7 +1793,7 @@ void Matrix::NS_Diagonalize(Matrix &BL, Matrix &BR,
 
 void Matrix::Write(int prec) const
 {
-     char form[40]="%12.8g ";
+     char form[40]="%14.8g ";
      if (prec) sprintf(form,"%%%d.%dg ",prec+6,prec);
      for (long i=1;i<=N1;i++)
      {
@@ -2399,12 +2451,12 @@ Matrix Change_Basis(const Matrix &M, const Matrix &B)
      return R;
 }
 
-Matrix T(const Matrix &M)
-{
-     Matrix Res(M);
-     Res.T();
-     return Res;
-}
+// Matrix T(const Matrix &M)
+// {
+//      Matrix Res(M);
+//      Res.T();
+//      return Res;
+// }
 
 Matrix Part(const Matrix &M, long i0,long j0,long i1,long j1)
 {
@@ -2457,6 +2509,11 @@ Vector Solve(const Matrix &M, const Vector &b)
 double Trace(const Matrix &M)
 {
      return M.Trace();
+}
+
+double Sum(const Matrix &M)
+{
+     return M.Sum();
 }
 
 double Det(const Matrix &M)
@@ -2526,4 +2583,100 @@ void Trid_Diagonalize(Matrix &B, Vector &D, Vector &S)
      long info;
      dsteqr_(&compz,&N,D.D+1,S.D+1,z,&ldz,work,&info);
      free(work);
+}
+
+Matrix Read_Data(const char *filename)
+{
+     FILE *file = fopen(filename, "rt");
+     if (!file) Error("Failed to open file");
+     
+     // Use a large buffer to speed up text reading
+     long buf_size = 1024 * 1024; // 1MB
+     char *stream_buf = (char*)malloc(buf_size);
+     if (stream_buf) setvbuf(file, stream_buf, _IOFBF, buf_size);
+     
+     char *line=NULL;
+     size_t len=0;
+     ssize_t read_bytes;
+     long Nr=0;
+     long Nc=0;
+     
+     // SWEEP 1: Count rows and columns using getline
+     while ((read_bytes = getline(&line, &len, file)) != -1)
+     {
+	  char *ptr = line;
+	  // Skip leading spaces or tabs
+	  while (*ptr==' ' || *ptr=='\t') ptr++;
+	  // Ignore comments and blank lines
+	  if (*ptr=='#' || *ptr=='\n' || *ptr=='\r' || *ptr=='\0') continue;
+	  
+	  // Count columns on the first valid row encountered
+	  if (Nc==0)
+	  {
+	       char *temp_ptr=ptr;
+	       while (*temp_ptr && *temp_ptr!='\n' && *temp_ptr!='\r')
+	       {
+		    strtod(temp_ptr,&temp_ptr);
+		    Nc++;
+		    while (*temp_ptr==' ' || *temp_ptr=='\t') temp_ptr++;
+	       }
+	  }	  
+	  Nr++;
+     }
+
+     if (Nr==0 || Nc==0)
+     {
+	  Error("Error: No valid matrix data found in file.");
+	  // free(line);
+	  // if (stream_buf) free(stream_buf);
+	  // fclose(file);
+	  // return 1;
+     }
+     
+     // Allocate memory
+     double *matrix =(double*)malloc((Nr*Nc+1)*sizeof(double));
+     if (!matrix)
+     {
+	  Error("Memory allocation failed");
+	  // free(line);
+	  // if (stream_buf) free(stream_buf);
+	  // fclose(file);
+	  // return 1;
+     }
+     
+     // SWEEP 2: Read and parse data into memory
+     rewind(file); // Reset file pointer back to the beginning
+     long r=0;
+     
+     while ((read_bytes=getline(&line,&len,file))!=-1 && r<Nr)
+     {
+	  char *ptr = line;	  
+	  // Skip leading spaces or tabs
+	  while (*ptr==' ' || *ptr=='\t') ptr++;
+	  // Ignore comments and blank lines
+	  if (*ptr=='#' || *ptr=='\n' || *ptr=='\r' || *ptr=='\0') continue;
+	  // Parse values into the current row
+	  long c=0;
+	  while (*ptr && *ptr!='\n' && *ptr!='\r' && c<Nc)
+	  {
+	       matrix[r*Nc+c+1] = strtod(ptr, &ptr);
+	       c++;
+	  }	  
+	  if (c>0) r++;        
+     }
+     
+     // Clean up resources
+     free(line);
+     fclose(file);
+     if (stream_buf) free(stream_buf);
+
+     Matrix M; M.Load(matrix,Nc,Nr);
+     return M;
+}
+
+Matrix Read_Matrix(const char *filename)
+{
+     Matrix M=Read_Data(filename);
+     M.T();
+     return M;
 }

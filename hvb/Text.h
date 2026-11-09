@@ -68,6 +68,7 @@ void Copy(Text &S, const char *z, long n);
 
 ostream& operator<< (ostream &out, Text &S);
 bool operator==(const Text &S1, const Text &S2);
+bool operator!=(const Text &S1, const Text &S2);
 
 bool Is_Space(const char q);
 

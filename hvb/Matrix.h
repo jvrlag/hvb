@@ -222,7 +222,8 @@ public:
      bool   Solve(Vector &) const;
      bool   Solve(Matrix &) const;
      double Det() const; 
-     double Trace() const; 
+     double Trace() const;
+     double Sum() const;
      void   Diagonalize(Matrix &,Vector &) const; 
      void   Spectrum(Vector &) const;
      void   Tridiagonalize(Matrix &, Vector &, Vector &) const;
@@ -261,7 +262,7 @@ void   Copy(Matrix& B, const Matrix& A);
 Matrix Zero(long,long=0);
 Matrix Unit(long,long=0);
 Matrix Diag(const Vector &E);
-void Write(const Matrix &M);
+void   Write(const Matrix &M);
 Matrix Constant(double x, long, long);
 
 Matrix operator-(const Matrix &);
@@ -311,6 +312,7 @@ Vector Solve(const Matrix &A, const Vector &b);
 double Trace(const Matrix &M);
 double Det(const Matrix &M);
 double Norm(const Matrix &M);
+double Sum(const Matrix &M);
 Matrix Sqr(const Matrix &M);
 
 Matrix To_Matrix(const Table &T);
@@ -318,6 +320,9 @@ Table  To_Table(const Matrix &M);
 
 void   Trid_Spectrum(Vector &D, Vector &S);
 void   Trid_Diagonalize(Matrix &B, Vector &D, Vector &S);
+
+Matrix Read_Data(const char*);
+Matrix Read_Matrix(const char*);
 
 /////////////////////////////////////////////////////////////
 /// BLAS-LAPACK Headers

@@ -211,7 +211,7 @@ void Text::Strip_Blanks()
 bool Text::Empty() const
 {
      for (long i=0;i<N;i++)
-	  if (D[i]!=' ' && D[i]!='\t' && D[i]!=0) 
+	  if (D[i]!=' ' && D[i]!='\t' && D[i]!=0 && D[i]!='\n') 
 	       return false;
      return true;
 }
@@ -228,7 +228,12 @@ void Text::Append(const char q)
 bool operator==(const Text &S1, const Text &S2)
 {
      if (S1.N!=S2.N) return false;
-     return !strcmp(S1.D,S2.D);
+
+     bool are_equal=(strcmp(S1.D,S2.D)==0);
+//     printf("[%s][%s] (%d)\n",S1.D,S2.D,are_equal);
+     
+     
+     return(are_equal); // !strcmp(S1.D,S2.D);
 }
 
 bool operator!=(const Text &S1, const Text &S2)
@@ -359,7 +364,7 @@ Text Text::Get_Field(long n) const
 {
      long count=0;
      bool spacing_old=true;
-     long i,j;
+     long i;
      for (i=0;i<N;i++)
      {
           bool spacing=Is_Space(D[i]);
@@ -373,11 +378,14 @@ Text Text::Get_Field(long n) const
           Text Zp;
           return Zp;
      }
-     for (j=i;j<N;j++)
+     long j=i;
+     for (;j<=N;j++)
      {
           bool spacing=Is_Space(D[j]);
+//	  printf("%c|%d\n",D[j],spacing);
           if (spacing) { j--; break; }
      }
+//     printf("i: %ld, j: %ld\n",i,j);
      return Part(i,j);
 }
 
@@ -452,5 +460,5 @@ List Text::To_List() const
 
 bool Is_Space(const char q)
 {
-     return (q==' ' || q=='\t' || q=='\n');
+     return (q==' ' || q=='\t' || q=='\n' || q==0);
 }

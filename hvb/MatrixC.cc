@@ -1347,6 +1347,15 @@ cmplx MatrixC::Trace() const
      return result;
 }
 
+cmplx MatrixC::Sum() const
+{
+     cmplx result=0.0;
+     for (long i=1;i<=N1;i++)
+	  for (long j=1;j<=N2;j++)
+	       result+=Elem(i,j);
+     return result;
+}
+
 // Full diagonalization: all eigenvalues, all eigenvectors
 // NOT OPTIMAL: matrix is preserved 
 // CAUTION: Hermitian matrix is assumed!!!!!!!!!!!!
@@ -1667,7 +1676,7 @@ cmplx MatrixC::operator() (long i, long j) const
 
 MatrixC& MatrixC::operator=(const MatrixC& M)
 {
-     if (!(M.N1*M.N2)) 
+     if (!(M.N1 && M.N2)) 
      { 
 	  Destroy(); 
 	  return(*this); 
@@ -1679,7 +1688,7 @@ MatrixC& MatrixC::operator=(const MatrixC& M)
 
 MatrixC& MatrixC::operator=(const Matrix& M)
 {
-     if (!(M.N1*M.N2)) 
+     if (!(M.N1 && M.N2)) 
      { 
 	  Destroy(); 
 	  return(*this); 
@@ -2214,6 +2223,11 @@ cmplx Det(const MatrixC &M)
 cmplx Trace(const MatrixC &M)
 {
      return M.Trace();
+}
+
+cmplx Sum(const MatrixC &M)
+{
+     return M.Sum();
 }
 
 double Norm(const MatrixC &M)
